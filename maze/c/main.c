@@ -24,9 +24,9 @@ int getch()
   return c;
 }
 
-int init_maze(int cell[][FIELD_WIDTH])
+/* 棒倒し法 */
+void boutaoshi(int cell[][FIELD_WIDTH])
 {
-  /* 棒倒し法 */
   for(int y=0; y<FIELD_HEIGHT; y++)
   {
     for(int x=0; x<FIELD_WIDTH; x++)
@@ -57,7 +57,100 @@ int init_maze(int cell[][FIELD_WIDTH])
       } while(1);
     }
   }
-  return 0;
+}
+
+/* 穴掘り法 */
+void dig(int cell[][FIELD_WIDTH], int x, int y)
+{
+  u_int8_t b, dir;
+  while(1) {
+    int break_flag = 0;
+    dir = rand() % 4;
+    switch(dir) {
+      /* Up */
+      case 0:
+        if(cell[y-2][x] && cell[y-1][x])
+        {
+          cell[--y][x] = 0;
+          break_flag = 1;
+        }
+        b |= 1;
+        break;
+      /* Right */
+      case 1:
+        if(cell[y][x+2] && cell[y][x+1])
+        {
+          cell[y][++x] = 0;
+          break_flag = 1;
+        }
+        b |= 2;
+        break;
+      /* Down */
+      case 2:
+        if(cell[y+2][x] && cell[y+1][x])
+        {
+          cell[++y][x] = 0;
+          break_flag = 1;
+        }
+        b |= 4;
+        break;
+      /* Left */
+      case 3:
+        if(cell[y][x-2] && cell[y][x-1])
+        {
+          cell[y][--x] = 0;
+          break_flag = 1;
+        }
+        b |= 8;
+        break;
+    }
+    if(b==15) return;
+    if(break_flag) break;
+    printf("[%d]", b);
+  }
+
+  {
+    printf("\033[2J\033[H");
+    for(int y=0; y<FIELD_HEIGHT; y++)
+    {
+      for(int x=0; x<FIELD_WIDTH; x++)
+      {
+        printf(cell[y][x]?" #":"  ");
+      }
+      printf("\n");
+    }
+    getch();
+  }
+
+  dig(cell, x, y);
+}
+void anahori(int cell[][FIELD_WIDTH])
+{
+  for(int y=0; y<FIELD_HEIGHT; y++)
+  {
+    for(int x=0; x<FIELD_WIDTH; x++)
+    {
+      if( 0==y || FIELD_HEIGHT-1==y || 0==x || FIELD_WIDTH-1==x )
+        cell[y][x] = 0;
+      else
+        cell[y][x] = 1;
+    }
+  }
+  int x = (rand()%(FIELD_WIDTH-4)) + 2;
+  int y = (rand()%(FIELD_HEIGHT-4)) + 2;
+  x%2 ? : x--;
+  y%2 ? : y--;
+  cell[y][x] = 0;
+  int break_flag = 0;
+  while(!break_flag)
+    switch(rand()%4) {
+      case 0: if(y-1>1) {              y--; break_flag = 1;} break;
+      case 1: if(x+1<FIELD_WIDTH-2) {  x++; break_flag = 1;} break;
+      case 2: if(y+1<FIELD_HEIGHT-2) { y++; break_flag = 1;} break;
+      case 3: if(x-1>1) {              x--; break_flag = 1;} break;
+    }
+  cell[y][x] = 0;
+  dig(cell, x, y);
 }
 
 int main()
@@ -78,8 +171,9 @@ int main()
 
   int cell[FIELD_HEIGHT][FIELD_WIDTH] = {};
   int footprint[FIELD_HEIGHT][FIELD_WIDTH] = {};
-  if(0>init_maze(cell))
-    perror("init");
+  boutaoshi(cell);
+  //cursor_x = cursor_y = start.x  = start.y  = 2;
+  //anahori(cell);
 
 
   printf("\033[2J");
@@ -93,8 +187,8 @@ int main()
     {
       for(int x=0; x<FIELD_WIDTH; x++)
       {
-        if(footprint[y][x])
-          printf("\033[48;5;001m");
+        //if(footprint[y][x])
+          //printf("\033[48;5;001m");
         if(x==cursor_x && y==cursor_y)
           printf(" @");
         else if(1==cell[y][x])
@@ -103,6 +197,8 @@ int main()
           printf(" \033[38;5;004mS");
         else if(goal.y==y && goal.x==x)
           printf(" \033[38;5;002mG");
+        else if(footprint[y][x])
+          printf(" .");
         else
           printf("  ");
         printf("\033[0m");
