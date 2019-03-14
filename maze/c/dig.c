@@ -11,8 +11,6 @@
 #define FOOT  1
 
 int CELL[FIELD_HEIGHT][FIELD_WIDTH];
-int cursor_x = 2;
-int cursor_y = 2;
 
 int getch()
 {
@@ -79,6 +77,8 @@ void init_maze()
 
 int main()
 {
+  int cursor_x  = 2;
+  int cursor_y  = 2;
   int quit_flag = 0;
   int footprint[FIELD_HEIGHT][FIELD_WIDTH] = {0};
   struct pos {
