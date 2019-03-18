@@ -1,0 +1,8 @@
+#Rust入門. コード穢すぎるので書き直す
+[package]
+name = "lg"
+version = "0.0.0"
+authors = ["kmgy <foo@example.bar>"]
+
+[dependencies]
+termios = "0.3.1"
