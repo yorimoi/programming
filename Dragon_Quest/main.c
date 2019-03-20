@@ -148,10 +148,8 @@ CELLDESC cell_descs[] =
 
 int cells[FIELD_HEIGHT][FIELD_WIDTH];
 
-//int player_x = 51;
-//int player_y = 52;
-int player_x = 55;
-int player_y = 57;
+int player_x = 51;
+int player_y = 52;
 
 bool quit = false;
 
