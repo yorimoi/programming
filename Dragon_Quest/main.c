@@ -5,7 +5,6 @@
 /* vim:set foldmethod=marker: */
 
 #include <stdio.h>
-#include <stdio.h>
 #include <termios.h>
 
 #define FIELD_WIDTH   136
@@ -125,7 +124,7 @@ BGR pixels[FIELD_HEIGHT][FIELD_WIDTH];
 typedef struct CELLDESC{
   BGR bgr;
   char aa[21+1]; // "\033[48;2;000;000;000mXX"
-  bool canPen;  // Penetration
+  bool canPen;   // Penetration
 }CELLDESC;
 
 CELLDESC cell_descs[] =
@@ -149,8 +148,10 @@ CELLDESC cell_descs[] =
 
 int cells[FIELD_HEIGHT][FIELD_WIDTH];
 
-int player_x = 51;
-int player_y = 52;
+//int player_x = 51;
+//int player_y = 52;
+int player_x = 55;
+int player_y = 57;
 
 bool quit = false;
 
@@ -168,8 +169,8 @@ bool flags[FLAG_MAX];
 //  true,  // FLAG_GOLEM_KILLED
 //  true,  // FLAG_ROTO_EMBLEM
 //  true,  // FLAG_RAINBOW_DROP
-//  false,  // FLAG_RAINBOW_BRIDGE
-//  true,  // FLAG_LIGHT_BALL
+//  true,  // FLAG_RAINBOW_BRIDGE
+//  false,  // FLAG_LIGHT_BALL
 //};
 
 int getch()
@@ -223,6 +224,7 @@ void player_dead()
   printf("王様「勇者よ,              \n"
          "死んでしまうとは情けない.」\a");
   getch();
+  printf("\033[2J");
   display();
   printf("王様「しっかり頼むぞ!」");
   getch();
@@ -427,22 +429,29 @@ void event()
     case LOCATION_DRAGON_KING:
       if(!flags[FLAG_LIGHT_BALL]) {
         if(flags[FLAG_ROTO_ARMOR]) {
-          flags[FLAG_LIGHT_BALL] = true;
-          printf("竜王を倒した!\a");
-          getch();
-          printf("\n光の玉を手に入れた!\a");
-          getch();
+#include "battle.h"
+          if(battle()) {
+            flags[FLAG_LIGHT_BALL] = true;
+            printf("\033[2J");
+            display();
+            printf("竜王を倒した!\a");
+            getch();
+            printf("\n光の玉を手に入れた!\a");
+            getch();
+          } else {
+            printf("負けてしまった...\a");
+            getch();
+            player_dead();
+          }
         } else {
-          printf("竜王にやられてしまった!\a");
+          printf("竜王の圧倒的な力に\n"
+                 "まったく歯が立たなかった...\a");
           getch();
           player_dead();
         }
       }
       break;
   }
-
-  //display();
-  //printf("location:%d\n", location);
 }
 
 int main()
@@ -469,8 +478,7 @@ int main()
       for(int i=0; i<CELL_TYPE_MAX; i++) {
         if((bgr.b == cell_descs[i].bgr.b)
          &&(bgr.g == cell_descs[i].bgr.g)
-         &&(bgr.b == cell_descs[i].bgr.b))
-         //&&(bgr.r == cell_descs[i].bgr.r))
+         &&(bgr.b == cell_descs[i].bgr.b)) //&&(bgr.r == cell_descs[i].bgr.r))
           cell_type = i;
       }
       if(cell_type < 0) {
