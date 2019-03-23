@@ -312,11 +312,17 @@ void display()
   }
 }
 
+void quit()
+{
+  printf("\033[?25h");
+  exit(0);
+}
+
 void gameover()
 {
   printf(" GAME OVER!\a\n");
   getch();
-  exit(0);
+  quit();
 }
 
 int main()
@@ -361,6 +367,7 @@ int main()
 
     if(kbhit()) {
       switch(getch()) {
+        case 'q': quit(); break;
         case 'h': if(!cd(mino_x-1,mino_y,mino_type,mino_angle)) mino_x--; break;
         case 'j': if(!cd(mino_x,mino_y+1,mino_type,mino_angle)) mino_y++; break;
         case 'k':
