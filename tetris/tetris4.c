@@ -6,9 +6,10 @@
 #include <fcntl.h>
 
 #define FIELD_WIDTH  12
-#define FIELD_HEIGHT 22
+#define FIELD_HEIGHT 25
 
 #define MINO_SIZE    4
+#define QUEUE_SIZE   4
 
 enum {
   BLOCK_NONE,
@@ -140,6 +141,8 @@ int field[FIELD_HEIGHT][FIELD_WIDTH];
 int field_buffer[FIELD_HEIGHT][FIELD_WIDTH];
 
 int mino_x, mino_y, mino_type, mino_angle;
+int mino_queue[QUEUE_SIZE];
+int first_mino = 1;
 
 int getch() /*{{{*/
 {
@@ -174,21 +177,55 @@ int kbhit() /*{{{*/
 
 void reset_mino()
 {
-  mino_x = 4;
-  mino_y = 0;
-  mino_type = rand() % MINO_TYPE_MAX;
+  int mino_type_buffer;
+  int duplication;
+
+  for(int i=0; i<6; i++) {
+    duplication = 0;
+    mino_type_buffer = rand() % MINO_TYPE_MAX;
+    for(int j=0; j<QUEUE_SIZE; j++)
+      if(mino_queue[j] == mino_type_buffer)
+        duplication = 1;
+    if(!duplication)
+      break;
+  }
+
+  if(
+    first_mino
+    && (MINO_TYPE_S == mino_type_buffer)
+    && (MINO_TYPE_Z == mino_type_buffer)
+    && (MINO_TYPE_O == mino_type_buffer)
+  )
+    reset_mino();
+  else
+    first_mino = 0;
+
+  for(int i=0; i<QUEUE_SIZE-1; i++)
+    mino_queue[i] = mino_queue[i+1];
+  mino_queue[QUEUE_SIZE-1] = mino_type = mino_type_buffer;
+
+  mino_x     = 4;
   mino_angle = 0;
+  switch(mino_type) {
+    case MINO_TYPE_I: mino_y = 2; break;
+    case MINO_TYPE_O: mino_y = 1; break;
+    case MINO_TYPE_S: mino_y = 1; break;
+    case MINO_TYPE_Z: mino_y = 1; break;
+    case MINO_TYPE_J: mino_y = 0; break;
+    case MINO_TYPE_L: mino_y = 0; break;
+    case MINO_TYPE_T: mino_y = 1; break;
+  }
 }
 
 void display()
 {
-  printf("\033[H");
   memcpy(field_buffer, field, sizeof field);
   for(int i=0, j=0; j<MINO_SIZE; i++)
     if(MINO_TYPE[mino_type][mino_angle][j] == i)
       field_buffer[mino_y+i/4][mino_x+i%4] = mino_type + 2, j++;
 
-  for(int y=0; y<FIELD_HEIGHT; y++) {
+  printf("\033[H");
+  for(int y=2; y<FIELD_HEIGHT; y++) {
     for(int x=0; x<FIELD_WIDTH; x++)
       printf("%s", BLOCK_AA[field_buffer[y][x]]);
     printf("\n");
@@ -224,11 +261,13 @@ int main()
   time_t t = 0;
   srand((unsigned int)time(NULL));
 
-  for(int y=1; y<FIELD_HEIGHT; y++)
+  for(int y=3; y<FIELD_HEIGHT; y++)
     field[y][0] = field[y][FIELD_WIDTH-1] = BLOCK_WALL;
   for(int x=1; x<FIELD_WIDTH-1; x++)
     field[FIELD_HEIGHT-1][x] = BLOCK_WALL;
 
+  mino_queue[0] = mino_queue[2] = MINO_TYPE_S;
+  mino_queue[1] = mino_queue[3] = MINO_TYPE_Z;
   reset_mino();
   printf("\033[2J\033[H\033[?25l");
 
