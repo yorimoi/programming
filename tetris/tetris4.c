@@ -247,8 +247,9 @@ int main()
             if(field[y][x] == BLOCK_NONE)
               line_erase = 0;
           if(line_erase) {
-            for(int i=y; i>0; i--)
-              memcpy(field[i], field[i-1], (sizeof(int)) * FIELD_WIDTH);
+            for(int y2=y; y2>0; y2--)
+              for(int x2=1; x2<FIELD_WIDTH-1; x2++)
+                field[y2][x2] = field[y2-1][x2];
           }
         }
 
