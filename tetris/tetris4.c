@@ -42,17 +42,17 @@ enum {
   MINO_ANGLE_MAX
 };
 
-char BLOCK_AA[BLOCK_MAX][19+2+1] =
+char BLOCK_AA[BLOCK_MAX][19+3+1] =
 {
   "\033[38;2;000;000;000m  ", // BLOCK_NONE
-  "\033[38;2;240;240;240m #", // BLOCK_WALL
-  "\033[38;2;000;255;255m #", // BLOCK_MINO_I
-  "\033[38;2;255;255;000m #", // BLOCK_MINO_O
-  "\033[38;2;000;224;000m #", // BLOCK_MINO_S
-  "\033[38;2;255;000;000m #", // BLOCK_MINO_Z
-  "\033[38;2;032;128;255m #", // BLOCK_MINO_J
-  "\033[38;2;255;128;000m #", // BLOCK_MINO_L
-  "\033[38;2;192;064;192m #", // BLOCK_MINO_T
+  "\033[38;2;240;240;240m■", // BLOCK_WALL
+  "\033[38;2;000;255;255m■", // BLOCK_MINO_I
+  "\033[38;2;255;255;000m■", // BLOCK_MINO_O
+  "\033[38;2;000;224;000m■", // BLOCK_MINO_S
+  "\033[38;2;255;000;000m■", // BLOCK_MINO_Z
+  "\033[38;2;032;128;255m■", // BLOCK_MINO_J
+  "\033[38;2;255;128;000m■", // BLOCK_MINO_L
+  "\033[38;2;192;064;192m■", // BLOCK_MINO_T
 };
 
 int MINO_TYPE[MINO_TYPE_MAX][MINO_ANGLE_MAX][MINO_SIZE] =
@@ -139,7 +139,8 @@ int MINO_TYPE[MINO_TYPE_MAX][MINO_ANGLE_MAX][MINO_SIZE] =
 int field[FIELD_HEIGHT][FIELD_WIDTH];
 int field_buffer[FIELD_HEIGHT][FIELD_WIDTH];
 
-int mino_x, mino_y, mino_type, mino_angle;
+int mino_x, mino_y, mino_type;
+unsigned int mino_angle;
 int mino_stack1[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
 int mino_stack2[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
 int mino_stack_cnt = -1;
@@ -196,13 +197,13 @@ void next_mino()
   mino_angle = 0;
   mino_x     = 4;
   switch(mino_type) {
-    case MINO_TYPE_I: mino_y = 2; break;
-    case MINO_TYPE_O: mino_y = 1; break;
-    case MINO_TYPE_S: mino_y = 1; break;
-    case MINO_TYPE_Z: mino_y = 1; break;
-    case MINO_TYPE_J: mino_y = 0; break;
+    case MINO_TYPE_J:
     case MINO_TYPE_L: mino_y = 0; break;
+    case MINO_TYPE_O:
+    case MINO_TYPE_S:
+    case MINO_TYPE_Z:
     case MINO_TYPE_T: mino_y = 1; break;
+    case MINO_TYPE_I: mino_y = 2; break;
   }
 }
 
@@ -305,9 +306,13 @@ int main()
           break;
         case 'l': if(!cd(mino_x+1, mino_y, mino_angle)) mino_x++; break;
         case 'q': quit();  break;
-        case ' ':
+        case 'a':
           if(!cd(mino_x, mino_y, (mino_angle + 1) % MINO_ANGLE_MAX))
             mino_angle = (mino_angle + 1) % MINO_ANGLE_MAX;
+          break;
+        case 'b':
+          if(!cd(mino_x, mino_y, (mino_angle - 1) % MINO_ANGLE_MAX))
+            mino_angle = (mino_angle - 1) % MINO_ANGLE_MAX;
           break;
       }
       display();
