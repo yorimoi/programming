@@ -9,7 +9,6 @@
 #define FIELD_HEIGHT 25
 
 #define MINO_SIZE    4
-#define QUEUE_SIZE   4
 
 enum {
   BLOCK_NONE,
@@ -141,8 +140,9 @@ int field[FIELD_HEIGHT][FIELD_WIDTH];
 int field_buffer[FIELD_HEIGHT][FIELD_WIDTH];
 
 int mino_x, mino_y, mino_type, mino_angle;
-int mino_queue[QUEUE_SIZE];
-int first_mino = 1;
+int mino_stack1[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
+int mino_stack2[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
+int mino_stack_cnt = -1;
 
 int getch() /*{{{*/
 {
@@ -175,37 +175,26 @@ int kbhit() /*{{{*/
   return 0;
 } /*}}}*/
 
-void reset_mino()
+void init_mino(int *mino_stack)
 {
-  int mino_type_buffer;
-  int duplication;
+  for(int i=MINO_TYPE_MAX-1; i>0; i--) {
+    int mix = rand() % i;
+    int tmp = *(mino_stack+i);
+    *(mino_stack+i) = *(mino_stack+mix);
+    *(mino_stack+mix) = tmp;
+ }
+}
 
-  for(int i=0; i<6; i++) {
-    duplication = 0;
-    mino_type_buffer = rand() % MINO_TYPE_MAX;
-    for(int j=0; j<QUEUE_SIZE; j++)
-      if(mino_queue[j] == mino_type_buffer)
-        duplication = 1;
-    if(!duplication)
-      break;
+void next_mino()
+{
+  if(MINO_TYPE_MAX <= ++mino_stack_cnt) {
+    mino_stack_cnt = 0;
+    memcpy(mino_stack1, mino_stack2, sizeof(int)*MINO_TYPE_MAX);
+    init_mino(mino_stack2);
   }
-
-  if(
-    first_mino
-    && (MINO_TYPE_S == mino_type_buffer)
-    && (MINO_TYPE_Z == mino_type_buffer)
-    && (MINO_TYPE_O == mino_type_buffer)
-  )
-    reset_mino();
-  else
-    first_mino = 0;
-
-  for(int i=0; i<QUEUE_SIZE-1; i++)
-    mino_queue[i] = mino_queue[i+1];
-  mino_queue[QUEUE_SIZE-1] = mino_type = mino_type_buffer;
-
-  mino_x     = 4;
+  mino_type = mino_stack1[mino_stack_cnt];
   mino_angle = 0;
+  mino_x     = 4;
   switch(mino_type) {
     case MINO_TYPE_I: mino_y = 2; break;
     case MINO_TYPE_O: mino_y = 1; break;
@@ -266,9 +255,9 @@ int main()
   for(int x=1; x<FIELD_WIDTH-1; x++)
     field[FIELD_HEIGHT-1][x] = BLOCK_WALL;
 
-  mino_queue[0] = mino_queue[2] = MINO_TYPE_S;
-  mino_queue[1] = mino_queue[3] = MINO_TYPE_Z;
-  reset_mino();
+  init_mino(mino_stack1);
+  init_mino(mino_stack2);
+  next_mino();
   printf("\033[2J\033[H\033[?25l");
 
   while(1) {
@@ -278,7 +267,7 @@ int main()
         mino_y++;
       } else {
         memcpy(field, field_buffer, sizeof field_buffer);
-        reset_mino();
+        next_mino();
 
         for(int y=0; y<FIELD_HEIGHT-1; y++) {
           int line_erase = 1;
