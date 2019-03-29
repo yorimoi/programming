@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: c8152c49f98c99445b7cef2ad31b027d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - BLOCK_WALL: {fileID: 21300000, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_I: {fileID: 21300002, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_O: {fileID: 21300004, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_S: {fileID: 21300006, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_Z: {fileID: 21300008, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_J: {fileID: 21300010, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_L: {fileID: 21300012, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  - BLOCK_TYPE_T: {fileID: 21300014, guid: 62b6ddadbaa66f546beaa131c1279964, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
