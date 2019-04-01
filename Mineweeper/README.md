@@ -7,8 +7,10 @@ Simplistic Terminal Minesweeper
 * Linux, WSL
 
 ## Installation
-`git clone https://github.com/yorimoi/minesweeper.git`  
-`cd minesweeper`  
+~~`git clone https://github.com/yorimoi/minesweeper.git`~~  
+`mkdir minesweeper && cd $_`  
+`wget https://github.com/yorimoi/programming/raw/master/Mineweeper/ms.c`  
+`wget https://github.com/yorimoi/programming/raw/master/Mineweeper/Makefile`  
 `make`  
 `./ms` or `sudo make install`  
 
