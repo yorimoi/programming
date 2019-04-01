@@ -1,12 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <time.h>
 #include <termios.h>
+#include <fcntl.h>
 
 #define COURSE_WIDTH  224
 #define COURSE_HEIGHT  15
 
 #define SCREEN_WIDTH  16
+
+typedef int bool;
+#define true  1
+#define false 0
+
 
 enum {
   PART_NONE,
@@ -131,7 +139,7 @@ int course[COURSE_HEIGHT][COURSE_WIDTH];
 
 int player_x, player_y;
 
-int getch()
+int getch() /*{{{*/
 {
   char ch;
   struct termios t;
@@ -141,7 +149,29 @@ int getch()
   ch = getchar();
   tcsetattr(0, TCSADRAIN, &t);
   return ch;
-}
+} /*}}}*/
+
+int kbhit() /*{{{*/
+{
+  int ch, of;
+  struct termios ot, nt;
+  tcgetattr(0, &ot);
+  nt = ot;
+  nt.c_lflag &= ~(ECHO|ICANON);
+  tcsetattr(0, TCSANOW, &nt);
+  of = fcntl(0, F_GETFL, 0);
+  fcntl(0, F_SETFL, of | O_NONBLOCK);
+  ch = getchar();
+  tcsetattr(0, TCSANOW, &ot);
+  fcntl(0, F_SETFL, of);
+  if (ch != EOF) {
+    ungetc(ch, stdin);
+    return 1;
+  }
+  return 0;
+} /*}}}*/
+
+void goal();
 
 // Collision Detection
 int cd(int px, int py)
@@ -161,6 +191,12 @@ int cd(int px, int py)
     case PART_QUESTION1:
     case PART_QUESTION2:
       return 1;
+    case PART_GOAL_TOP:
+    case PART_GOAL_POLE:
+      player_x = px;
+      player_y = py;
+      goal();
+      break;
   }
   return 0;
 }
@@ -187,14 +223,45 @@ void draw()
 
 void quit()
 {
-  printf("\033[?25h");
+  printf("\033[0m\033[?25h");
   exit(0);
+}
+
+void goal()
+{
+  draw();
+  usleep(1000*600);
+  while(course[player_y+1][player_x] == PART_GOAL_POLE) {
+    usleep(1000*200);
+    player_y++;
+    draw();
+  }
+  usleep(1000*300);
+
+  player_x++; player_y--; draw(); usleep(1000*200);
+
+  player_x++; player_y++; draw(); usleep(1000*200);
+
+  player_y++; draw(); usleep(1000*200);
+
+  for(int _i=0; _i<4; _i++)
+    player_x++, draw(), usleep(1000*200);
+
+  printf("\033[0m");
+  printf(" Press any key...\n");
+  printf("\033[7;10H");
+  printf("\033[30;48;2;080;128;255m");
+  printf("Congratulations!\a");
+  printf("\n\n\n\n\n\n\n\n\n");
+
+  getch();
+  quit();
 }
 
 int main()
 {
   FILE *fp;
-  char filename[] = "1-1.txt";
+  char filename[] = "./1-1.txt";
 
   fp = fopen(filename, "r");
   if(fp == NULL)
@@ -215,20 +282,51 @@ int main()
   }
   fclose(fp);
 
-  player_x = 1;
+  player_x = 3;
   player_y = 12;
 
+  bool jump = false;
+
+  struct timespec ts, tsbuf;
+  ts.tv_sec = ts.tv_nsec = 0;
+  unsigned long int msec = 0, msec_buf;
+
   printf("\033[2J\033[H\033[?25l");
+  draw();
 
   while(1) {
-    draw();
+    clock_gettime(CLOCK_MONOTONIC, &tsbuf);
+    msec_buf = (tsbuf.tv_sec*1000) + (tsbuf.tv_nsec/1000/1000);
+    if(msec+50 < msec_buf) {
+      clock_gettime(CLOCK_MONOTONIC, &ts);
+      msec = (ts.tv_sec*1000) + (ts.tv_nsec/1000/1000);
 
-    switch(getch()) {
-      case 'h': if(!cd(player_x-1, player_y)) player_x--; break;
-      case 'j': if(!cd(player_x, player_y+1)) player_y++; break;
-      case 'k': if(!cd(player_x, player_y-1)) player_y--; break;
-      case 'l': if(!cd(player_x+1, player_y)) player_x++; break;
-      case 'q': quit(); break;
+      if(!cd(player_x, player_y+1))
+        player_y++;
+      else
+        jump = false;
+      draw();
+    }
+
+    if(kbhit()) {
+      switch(getch()) {
+        case 'q': quit(); break;
+        case 'h': if(!cd(player_x-1, player_y)) player_x--; break;
+        case 'j': if(!cd(player_x, player_y+1)) player_y++; break;
+        case 'k': if(!cd(player_x, player_y-1)) player_y--; break;
+        case 'l': if(!cd(player_x+1, player_y)) player_x++; break;
+        case 'a':
+          if(!jump) {
+            for(int _i=0; _i<5; _i++)
+              if(!cd(player_x, player_y-1)) {
+                player_y--;
+                draw();
+                usleep(75000);
+              }
+            jump = true;
+          }
+      }
+      draw();
     }
   }
 }
