@@ -4,7 +4,7 @@ void init()
 {
   srand((unsigned int)time(NULL));
 
-  for(int i=0; i<ARRAY_MAX-1; i++)
+  for(int i=0; i<ARRAY_MAX; i++)
     array[i] = i;
 
   for(int i=0; i<ARRAY_MAX; i++) {
@@ -22,7 +22,7 @@ void init()
     printf("\n");
   }
 
-  printf("\033[0m\npress enter\n");
+  printf("\033[0mPress [ENTER] to continue or Ctrl-c to cancel adding it.\n");
   getchar();
 }
 
