@@ -402,13 +402,46 @@ int main()
               field[y2][x] = field[y2-1][x];
         }
       }
-      for(int x=1; x<FIELD_WIDTH-1; x++) {
-        if(field[3][x] != BLOCK_NONE)
+
+      // フィールド外に固定されたか
+      {
+        int exit_flag = 0, cnt = 0;
+        for(int y=0; y<MINO_HEIGHT; y++)
+          for(int x=0; x<MINO_WIDTH; x++)
+            if(field[y+mino_y][x+mino_x]
+                && mino_aa[mino_type][mino_angle][y][x]
+                && mino_y+y<MINO_HEIGHT)
+              cnt++;
+        if(cnt==4) {
+          exit_flag = 1;
           //end();
           init();
+        }
+        if(exit_flag) {
+          continue;
+        }
       }
 
-      next_mino();
+      // Nextミノがフィールドに被ったか
+      {
+        int exit_flag = 0;
+        next_mino();
+        draw();
+        for(int y=0; y<MINO_HEIGHT; y++) {
+          for(int x=0; x<MINO_WIDTH; x++) {
+            if((mino_aa[mino_type][mino_angle][y][x])
+              && (field[y+mino_y][x+mino_x])) {
+              exit_flag = 1;
+              //end();
+              init();
+            }
+          }
+        }
+        if(exit_flag) {
+          continue;
+        }
+      }
+
       int dest_x, min_x, max_x, low = FIELD_HEIGHT;
       for(int _angle=MINO_ANGLE_0; _angle<MINO_ANGLE_MAX; _angle++) {
         min_x = max_x = mino_x;
@@ -416,10 +449,35 @@ int main()
         while(!cd(max_x+1, mino_y, _angle)) max_x++;
         for(int _x=min_x; _x<=max_x; _x++) {
           int _y = 0, h = FIELD_HEIGHT;
-          while(!cd(_x, ++_y, _angle))
-            h--;
-          if( (low > h)
-           || ((low == h) && (rand()%2))) {
+          while(!cd(_x, ++_y, _angle)) h--;
+
+          // もしラインが消せるなら, そこにする
+          //int buf[FIELD_HEIGHT][FIELD_WIDTH];
+          //for(int y=0; y<FIELD_HEIGHT; y++)
+          //  for(int x=0; x<FIELD_WIDTH; x++)
+          //    if(y==_y && x==_x) {
+          //      for(int y2=0; y2<MINO_HEIGHT; y2++)
+          //        for(int x2=0; x2<MINO_WIDTH; x2++)
+          //          buf[y+y2][x+x2]
+          //            = field[y+y2][x+x2] | mino_aa[mino_type][_angle][y2][x2];
+          //    }
+          //    else
+          //      buf[y][x] = field[y][x];
+          //for(int y=4; y<FIELD_HEIGHT-1; y++) {
+          //  int erase = 1;
+          //  for(int x=1; x<FIELD_WIDTH-1; x++)
+          //    if(field[y][x] == BLOCK_NONE)
+          //      erase = 0;
+          //  if(erase) {
+          //    low = 0;
+          //    dest_x = _x;
+          //    mino_angle = _angle;
+          //  }
+          //}
+
+          // 一番低くなるように積む
+          if( (low > h)                     // 一番低い
+           || ((low == h) && (rand()%2))) { // 同じなら, 1/2の確立で更新
             low = h;
             dest_x = _x;
             mino_angle = _angle;
