@@ -482,27 +482,27 @@ int main()
           }
 
           // 一番低くなるように積む
-          if( (low > h)                     // 一番低い
-           || ((low == h) && (rand()%2))) { // 同じなら, 1/2の確立で更新
+          if(low > h) {
             low = h;
             dest_x = _x;
             mino_angle = _angle;
           }
-          //if(low > h) {
-          //  low = h;
-          //  dest_x = _x;
-          //  mino_angle = _angle;
-          //}
-          //if((low == h)) {
-          //  int hole = 0;
-          //  for(int x=0; x<MINO_WIDTH; x++)
-          //    if(field[_y+1][x] == BLOCK_NONE)
-          //      hole = 1;
-          //  if(!hole) {
-          //    dest_x = _x;
-          //    mino_angle = _angle;
-          //  }
-          //}
+          if((low == h)) {
+            int hole = 0, cnt = 0, y;
+            for(y=0; y<MINO_HEIGHT; y++) {
+              for(int x=0; x<MINO_WIDTH; x++)
+                if(mino_aa[mino_type][_angle][y][x]) cnt++;
+              if(cnt==4)
+                break;
+            }
+            for(int x=0; x<MINO_WIDTH; x++)
+              if(field[_y+y+1][x] == BLOCK_NONE)
+                hole = 1;
+            if((!hole) && (rand()%2)) {
+              dest_x = _x;
+              mino_angle = _angle;
+            }
+          }
         }
       }
       if(dest_x < mino_x) {
