@@ -397,7 +397,6 @@ int main()
           if(field[y][x] == BLOCK_NONE)
             erase = 0;
         if(erase) {
-          getchar();
           for(int y2=y; y2>0; y2--)
             for(int x=1; x<FIELD_WIDTH-1; x++)
               field[y2][x] = field[y2-1][x];
@@ -410,12 +409,23 @@ int main()
       }
 
       next_mino();
-      mino_angle = rand() % MINO_ANGLE_MAX;
-      int min_x, max_x;
-      min_x = max_x = mino_x;
-      while(!cd(min_x-1, mino_y, mino_angle)) min_x--;
-      while(!cd(max_x+1, mino_y, mino_angle)) max_x++;
-      int dest_x = rand() % max_x + min_x;
+      int dest_x, min_x, max_x, low = FIELD_HEIGHT;
+      for(int _angle=MINO_ANGLE_0; _angle<MINO_ANGLE_MAX; _angle++) {
+        min_x = max_x = mino_x;
+        while(!cd(min_x-1, mino_y, _angle)) min_x--;
+        while(!cd(max_x+1, mino_y, _angle)) max_x++;
+        for(int _x=min_x; _x<=max_x; _x++) {
+          int _y = 0, h = FIELD_HEIGHT;
+          while(!cd(_x, ++_y, _angle))
+            h--;
+          if( (low > h)
+           || ((low == h) && (rand()%2))) {
+            low = h;
+            dest_x = _x;
+            mino_angle = _angle;
+          }
+        }
+      }
       if(dest_x < mino_x) {
         while(!cd(mino_x-1, mino_y, mino_angle) && dest_x < mino_x) {
           mino_x--;
