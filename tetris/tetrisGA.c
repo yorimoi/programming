@@ -172,30 +172,30 @@ int mino_aa[MINO_TYPE_MAX][MINO_ANGLE_MAX][MINO_HEIGHT][MINO_WIDTH] =
     // MINO_ANGLE_0
     {
       { 0, 0, 0, 0},
-      { 0, 0, 0, 0},
-      { 1, 1, 1, 0},
-      { 0, 0, 1, 0},
-    },
-    // MINO_ANGLE_90
-    {
-      { 0, 0, 0, 0},
-      { 0, 1, 0, 0},
-      { 0, 1, 0, 0},
-      { 1, 1, 0, 0},
-    },
-    // MINO_ANGLE_180
-    {
-      { 0, 0, 0, 0},
       { 1, 0, 0, 0},
       { 1, 1, 1, 0},
       { 0, 0, 0, 0},
     },
-    // MINO_ANGLE_270
+    // MINO_ANGLE_90
     {
       { 0, 0, 0, 0},
       { 0, 1, 1, 0},
       { 0, 1, 0, 0},
       { 0, 1, 0, 0},
+    },
+    // MINO_ANGLE_180
+    {
+      { 0, 0, 0, 0},
+      { 0, 0, 0, 0},
+      { 1, 1, 1, 0},
+      { 0, 0, 1, 0},
+    },
+    // MINO_ANGLE_270
+    {
+      { 0, 0, 0, 0},
+      { 0, 1, 0, 0},
+      { 0, 1, 0, 0},
+      { 1, 1, 0, 0},
     },
   },
   // MINO_TYPE_L
@@ -203,30 +203,30 @@ int mino_aa[MINO_TYPE_MAX][MINO_ANGLE_MAX][MINO_HEIGHT][MINO_WIDTH] =
     // MINO_ANGLE_0
     {
       { 0, 0, 0, 0},
-      { 0, 0, 0, 0},
-      { 1, 1, 1, 0},
-      { 1, 0, 0, 0},
-    },
-    // MINO_ANGLE_90
-    {
-      { 0, 0, 0, 0},
-      { 1, 1, 0, 0},
-      { 0, 1, 0, 0},
-      { 0, 1, 0, 0},
-    },
-    // MINO_ANGLE_180
-    {
-      { 0, 0, 0, 0},
       { 0, 0, 1, 0},
       { 1, 1, 1, 0},
       { 0, 0, 0, 0},
     },
-    // MINO_ANGLE_270
+    // MINO_ANGLE_90
     {
       { 0, 0, 0, 0},
       { 0, 1, 0, 0},
       { 0, 1, 0, 0},
       { 0, 1, 1, 0},
+    },
+    // MINO_ANGLE_180
+    {
+      { 0, 0, 0, 0},
+      { 0, 0, 0, 0},
+      { 1, 1, 1, 0},
+      { 1, 0, 0, 0},
+    },
+    // MINO_ANGLE_270
+    {
+      { 0, 0, 0, 0},
+      { 1, 1, 0, 0},
+      { 0, 1, 0, 0},
+      { 0, 1, 0, 0},
     },
   },
   // MINO_TYPE_T
@@ -310,7 +310,7 @@ void next_mino()
   mino_x     = 4;
   switch(mino_type) {
     case MINO_TYPE_J:
-    case MINO_TYPE_L: mino_y = 0; break;
+    case MINO_TYPE_L:
     case MINO_TYPE_O:
     case MINO_TYPE_S:
     case MINO_TYPE_Z:
