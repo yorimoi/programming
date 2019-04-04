@@ -444,36 +444,42 @@ int main()
 
       int dest_x, min_x, max_x, low = FIELD_HEIGHT;
       for(int _angle=MINO_ANGLE_0; _angle<MINO_ANGLE_MAX; _angle++) {
+        if(low<0)
+          continue;
         min_x = max_x = mino_x;
         while(!cd(min_x-1, mino_y, _angle)) min_x--;
         while(!cd(max_x+1, mino_y, _angle)) max_x++;
         for(int _x=min_x; _x<=max_x; _x++) {
           int _y = 0, h = FIELD_HEIGHT;
-          while(!cd(_x, ++_y, _angle)) h--;
+          while(!cd(_x, _y+1, _angle)) {
+            _y++;
+            h--;
+          }
 
           // もしラインが消せるなら, そこにする
-          //int buf[FIELD_HEIGHT][FIELD_WIDTH];
-          //for(int y=0; y<FIELD_HEIGHT; y++)
-          //  for(int x=0; x<FIELD_WIDTH; x++)
-          //    if(y==_y && x==_x) {
-          //      for(int y2=0; y2<MINO_HEIGHT; y2++)
-          //        for(int x2=0; x2<MINO_WIDTH; x2++)
-          //          buf[y+y2][x+x2]
-          //            = field[y+y2][x+x2] | mino_aa[mino_type][_angle][y2][x2];
-          //    }
-          //    else
-          //      buf[y][x] = field[y][x];
-          //for(int y=4; y<FIELD_HEIGHT-1; y++) {
-          //  int erase = 1;
-          //  for(int x=1; x<FIELD_WIDTH-1; x++)
-          //    if(field[y][x] == BLOCK_NONE)
-          //      erase = 0;
-          //  if(erase) {
-          //    low = 0;
-          //    dest_x = _x;
-          //    mino_angle = _angle;
-          //  }
-          //}
+          {
+            int tmp[FIELD_HEIGHT][FIELD_WIDTH];
+            memcpy(tmp, field, sizeof field);
+            for(int y=0; y<MINO_HEIGHT; y++)
+              for(int x=0; x<MINO_WIDTH; x++)
+                if(mino_aa[mino_type][_angle][y][x])
+                  tmp[y+_y][x+_x] = BLOCK_MINO_I + mino_type;
+            for(int y=4; y<FIELD_HEIGHT-1; y++) {
+              int erase = 1;
+              for(int x=1; x<FIELD_WIDTH-1; x++)
+                if(tmp[y][x] == BLOCK_NONE)
+                  erase = 0;
+              if(erase) {
+                // なるべく穴が開かないようにする
+                for(int x=0; x<MINO_WIDTH; x++)
+                  if(tmp[_y+1][x] == BLOCK_NONE)
+                    low = 0;
+                low = -1;
+                dest_x = _x;
+                mino_angle = _angle;
+              }
+            }
+          }
 
           // 一番低くなるように積む
           if( (low > h)                     // 一番低い
@@ -482,6 +488,21 @@ int main()
             dest_x = _x;
             mino_angle = _angle;
           }
+          //if(low > h) {
+          //  low = h;
+          //  dest_x = _x;
+          //  mino_angle = _angle;
+          //}
+          //if((low == h)) {
+          //  int hole = 0;
+          //  for(int x=0; x<MINO_WIDTH; x++)
+          //    if(field[_y+1][x] == BLOCK_NONE)
+          //      hole = 1;
+          //  if(!hole) {
+          //    dest_x = _x;
+          //    mino_angle = _angle;
+          //  }
+          //}
         }
       }
       if(dest_x < mino_x) {
