@@ -1,6 +1,7 @@
 # TheRustProgrammingLanguage_2ndEdition
 https://y-yu.github.io/trpl-2nd-pdf/book.pdf  
-For study
+For study  
+わざわざここで管理しなくても良い気がs  
 
-## Memo
-第2章(p32)まで読み終わり.  
+## 進捗
+~第3章(p60)  
