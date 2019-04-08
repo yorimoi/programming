@@ -300,29 +300,46 @@ typedef struct { /*{{{*/
 GENOME genomes[POPULATION];
 GENOME *gps = genomes;
 
-int generation = 1;
-int g_n = -1;
-int draw = 1;
+int generation = 1;    // 現在の世代
+int g_n = -1;          // 現在の個体
+int draw = 1;          // 描画するか否か
 
 
 // Collision Detection
 int cd(GENOME *g, int _x, int _y, int _angle);
 
+// フィールドより上に固定されたか
 int fixed_above_field(GENOME *g);
 
+// ネクストミノがフィールドに被っているか
 int suffer_next(GENOME *g);
 
 // 仮フィールド上の全てのデッドスペースの個数を返す
 // ※デッドスペース -> 上下にブロックがあるスペース
 int get_all_dead_space(int tmp[][FIELD_WIDTH], int h);
 
+// 積まれているブロックの一番上の高さ
 int get_max_height(int tmp[][FIELD_WIDTH]);
+
+// dest_x(dst)までmino_xを移動
 void move_x(GENOME *g, int dst);
+
+// 消せるラインがあるなら消し, 埋める
 void line_erase(GENOME *g);
+
+// ミノ配列の初期化
 void init_mino(int *mino_stack);
+
+// 次のミノを生成
 void next_mino(GENOME *g);
+
+// フィールドの0埋め等
 void init(GENOME *g);
+
+// 描画類全て
 void display(GENOME *g);
+
+// 終了処理
 void end();
 
 
@@ -340,10 +357,10 @@ int main()
     if(!cd(gps+g_n, (gps+g_n)->mino_x, (gps+g_n)->mino_y+1, (gps+g_n)->mino_angle))
       (gps+g_n)->mino_y++;
     else {
-      // Fixed
+      // 現在のミノをフィールドに固定する
       memcpy((gps+g_n)->field, (gps+g_n)->field_buffer, sizeof (gps+g_n)->field);
 
-      // Line erase
+      // 消せるなら消し, 埋める
       line_erase(gps+g_n);
 
       // フィールド外に固定されたか
@@ -364,10 +381,10 @@ int main()
         while(!cd(gps+g_n, max_x+1, (gps+g_n)->mino_y, _angle)) max_x++;
 
         for(int _x=min_x; _x<=max_x; _x++) {
-          int _y = 0, h = FIELD_HEIGHT, dead_space_cnt;
+          int _y = (gps+g_n)->mino_y, dead_space_cnt;
 
           // 仮ミノ落下後の仮フィールド生成
-          while(!cd(gps+g_n, _x, _y+1, _angle)) { _y++; h--; }
+          while(!cd(gps+g_n, _x, _y+1, _angle)) { _y++; }
           int tmp[FIELD_HEIGHT][FIELD_WIDTH];
           memcpy(tmp, (gps+g_n)->field, sizeof (gps+g_n)->field);
           for(int y=0; y<MINO_HEIGHT; y++)
@@ -375,32 +392,97 @@ int main()
               if(mino_aa[(gps+g_n)->mino_type][_angle][y][x])
                 tmp[y+_y][x+_x] = BLOCK_MINO_I + (gps+g_n)->mino_type;
 
+          // 試しにネクストミノもやってみる
+          // だめ
+          {
+            for(int _angle2=MINO_ANGLE_0; _angle2<MINO_ANGLE_MAX; _angle2++) {
+              int mino_type2;
+              if(MINO_TYPE_MAX <= (gps+g_n)->mino_stack_cnt+1)
+                mino_type2 = (gps+g_n)->mino_stack2[0];
+              else
+                mino_type2 = (gps+g_n)->mino_stack1[(gps+g_n)->mino_stack_cnt+1];
+              int mino_x2 = 4;
+              int mino_y2 = mino_type2 == MINO_TYPE_I ? 2 : 1;
+              for(int y=0; y<MINO_HEIGHT; y++)
+                for(int x=0; x<MINO_WIDTH; x++)
+                  if(mino_aa[mino_type2][_angle2][y][x])
+                    tmp[mino_y2][mino_x2] = BLOCK_MINO_I + mino_type2;
+              int min_x2 = mino_x2;
+              int max_x2 = mino_x2;
+              int can_move = 1;
+              while(can_move) {
+                for(int y=0; y<MINO_HEIGHT; y++)
+                  for(int x=0; x<MINO_WIDTH; x++)
+                    if((mino_aa[mino_type2][_angle2][y][x])
+                      && (tmp[mino_y2+y][min_x2-1+x] != BLOCK_NONE))
+                      can_move = 0;
+                if(can_move) min_x2--;
+              }
+              can_move = 1;
+              while(can_move) {
+                for(int y=0; y<MINO_HEIGHT; y++)
+                  for(int x=0; x<MINO_WIDTH; x++)
+                    if((mino_aa[mino_type2][_angle2][y][x])
+                      && (tmp[mino_y2+y][max_x2+1+x] != BLOCK_NONE))
+                      can_move = 0;
+                if(can_move) max_x2++;
+              }
+              for(int _x2=min_x2; _x2<=max_x2; _x2++) {
+                int _y2 = mino_y2, h2 = 0;
+                can_move = 1;
+                while(can_move) {
+                  for(int y=0; y<MINO_HEIGHT; y++)
+                    for(int x=0; x<MINO_WIDTH; x++)
+                      if((mino_aa[mino_type2][_angle2][y][x])
+                        && (tmp[_y2+1+y][_x2+x] != BLOCK_NONE))
+                        can_move = 0;
+                  if(can_move) _y2++;
+                }
+                for(int y=0; y<MINO_HEIGHT; y++)
+                  for(int x=0; x<MINO_WIDTH; x++)
+                    if(mino_aa[mino_type2][_angle2][y][x])
+                      tmp[y+_y2][x+_x2] = BLOCK_MINO_I + mino_type2;
+                int flag;
+                for(int y=FIELD_HEIGHT-2; y>0; y--) {
+                  flag = 0;
+                  for(int x=1; x<FIELD_WIDTH-1; x++)
+                    if(tmp[y][x] != BLOCK_NONE)
+                      flag = 1;
+                  if(flag) h2++;
+                  else break;
+                }
+                if(low > h2) {
+                  low = h2;
+                  dest_x = _x;
+                  (gps+g_n)->mino_angle = _angle;
+                }
+              }
+            }
+          }
+
           // 最大の高さ
           int max_h = get_max_height(tmp);
 
           // 一番低くなるように積む
-          if(low > max_h) {
-            low = max_h;
-            dest_x = _x;
-            (gps+g_n)->mino_angle = _angle;
-          }
+          //if(low > max_h) {
+          //  low = max_h;
+          //  dest_x = _x;
+          //  (gps+g_n)->mino_angle = _angle;
+          //}
 
           // 同じ高さならデッドスペースの少ない方を選択
-          if(low == max_h) {
-            dead_space_cnt = get_all_dead_space(tmp, max_h);
-            if(dead_space_cnt < min_dead_space) {
-              min_dead_space = dead_space_cnt;
-              dest_x = _x;
-              (gps+g_n)->mino_angle = _angle;
-            }
-          }
+          //if(low == max_h) {
+          //  dead_space_cnt = get_all_dead_space(tmp, max_h);
+          //  if(dead_space_cnt < min_dead_space) {
+          //    min_dead_space = dead_space_cnt;
+          //    dest_x = _x;
+          //    (gps+g_n)->mino_angle = _angle;
+          //  }
+          //}
 
         }
       }
-
-      // dest_xまでmino_xを移動
       move_x(gps+g_n, dest_x);
-
     }
     display(gps+g_n);
   } /*}}}*/
@@ -552,6 +634,7 @@ void display(GENOME *g)
 
   printf("\033[3;%dH", FIELD_WIDTH*2+2);
   printf("next: ");
+  /*{{{*/
   //for(int i=1; i<MINO_HEIGHT; i++) {
   //  printf("\033[%d;%dH", i+4, FIELD_WIDTH*2+3);
   //  for(int j=0; j<MINO_WIDTH; j++) {
@@ -560,7 +643,7 @@ void display(GENOME *g)
   //    else
   //      printf("  ");
   //  }
-  //}
+  //} /*}}}*/
 
   // Next 6 {{{
   // 表示しない. 最終的に6手先まで読めたら良いな的な
@@ -578,7 +661,7 @@ void display(GENOME *g)
   int next_cnt = 1;
   if(g->mino_stack_cnt+1 < MINO_TYPE_MAX) {
     for(int k=g->mino_stack_cnt+1; k<MINO_TYPE_MAX; k++) {
-      for(int i=1; i<MINO_HEIGHT; i++) {
+      for(int i=1; i<MINO_HEIGHT-1; i++) {
         printf("\033[%d;%dH", i+1+next_cnt*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack1[k]][MINO_ANGLE_0][i][j])
@@ -590,7 +673,7 @@ void display(GENOME *g)
       next_cnt++;
     }
     for(int k=0; k<g->mino_stack_cnt; k++) {
-      for(int i=1; i<MINO_HEIGHT; i++) {
+      for(int i=1; i<MINO_HEIGHT-1; i++) {
         printf("\033[%d;%dH", i+1+next_cnt*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack2[k]][MINO_ANGLE_0][i][j])
@@ -603,7 +686,7 @@ void display(GENOME *g)
     }
   } else {
     for(int k=0; k<MINO_TYPE_MAX-1; k++) {
-      for(int i=1; i<MINO_HEIGHT; i++) {
+      for(int i=1; i<MINO_HEIGHT-1; i++) {
         printf("\033[%d;%dH", i+1+(k+1)*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack2[k]][MINO_ANGLE_0][i][j])
