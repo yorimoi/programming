@@ -303,6 +303,7 @@ GENOME *gps = genomes;
 int generation = 1;    // 現在の世代
 int g_n = -1;          // 現在の個体
 int draw = 1;          // 描画するか否か
+int score;
 
 
 // Collision Detection
@@ -321,11 +322,13 @@ int get_all_dead_space(int tmp[][FIELD_WIDTH], int h);
 // 積まれているブロックの一番上の高さ
 int get_max_height(int tmp[][FIELD_WIDTH]);
 
+// 消せるラインがあるなら消し, 埋め, スコア加算
+void line_erase(GENOME *g);
+// 仮ミノ時の消せるライン数を返す
+int try_line_erase(int tmp[][FIELD_WIDTH]);
+
 // dest_x(dst)までmino_xを移動
 void move_x(GENOME *g, int dst);
-
-// 消せるラインがあるなら消し, 埋める
-void line_erase(GENOME *g);
 
 // ミノ配列の初期化
 void init_mino(int *mino_stack);
@@ -360,7 +363,7 @@ int main()
       // 現在のミノをフィールドに固定する
       memcpy((gps+g_n)->field, (gps+g_n)->field_buffer, sizeof (gps+g_n)->field);
 
-      // 消せるなら消し, 埋める
+      // 消せるなら消し, 埋め, スコア加算
       line_erase(gps+g_n);
 
       // フィールド外に固定されたか
@@ -373,7 +376,11 @@ int main()
       if(suffer_next(gps+g_n))
         continue;
 
-      int dest_x, low = FIELD_HEIGHT, min_x, max_x, min_dead_space = 128;
+      int dest_x,
+          max_field_h = FIELD_HEIGHT,
+          max_mino_h = FIELD_HEIGHT,
+          min_x, max_x,
+          min_dead_space = 128;
       for(int _angle=MINO_ANGLE_0; _angle<MINO_ANGLE_MAX; _angle++) {
         // Range of X coordinate
         min_x = max_x = (gps+g_n)->mino_x;
@@ -384,7 +391,7 @@ int main()
           int _y = (gps+g_n)->mino_y, dead_space_cnt;
 
           // 仮ミノ落下後の仮フィールド生成
-          while(!cd(gps+g_n, _x, _y+1, _angle)) { _y++; }
+          while(!cd(gps+g_n, _x, _y+1, _angle)) _y++;
           int tmp[FIELD_HEIGHT][FIELD_WIDTH];
           memcpy(tmp, (gps+g_n)->field, sizeof (gps+g_n)->field);
           for(int y=0; y<MINO_HEIGHT; y++)
@@ -392,93 +399,32 @@ int main()
               if(mino_aa[(gps+g_n)->mino_type][_angle][y][x])
                 tmp[y+_y][x+_x] = BLOCK_MINO_I + (gps+g_n)->mino_type;
 
-          // 試しにネクストミノもやってみる
-          // だめ
-          {
-            for(int _angle2=MINO_ANGLE_0; _angle2<MINO_ANGLE_MAX; _angle2++) {
-              int mino_type2;
-              if(MINO_TYPE_MAX <= (gps+g_n)->mino_stack_cnt+1)
-                mino_type2 = (gps+g_n)->mino_stack2[0];
-              else
-                mino_type2 = (gps+g_n)->mino_stack1[(gps+g_n)->mino_stack_cnt+1];
-              int mino_x2 = 4;
-              int mino_y2 = mino_type2 == MINO_TYPE_I ? 2 : 1;
-              for(int y=0; y<MINO_HEIGHT; y++)
-                for(int x=0; x<MINO_WIDTH; x++)
-                  if(mino_aa[mino_type2][_angle2][y][x])
-                    tmp[mino_y2][mino_x2] = BLOCK_MINO_I + mino_type2;
-              int min_x2 = mino_x2;
-              int max_x2 = mino_x2;
-              int can_move = 1;
-              while(can_move) {
-                for(int y=0; y<MINO_HEIGHT; y++)
-                  for(int x=0; x<MINO_WIDTH; x++)
-                    if((mino_aa[mino_type2][_angle2][y][x])
-                      && (tmp[mino_y2+y][min_x2-1+x] != BLOCK_NONE))
-                      can_move = 0;
-                if(can_move) min_x2--;
-              }
-              can_move = 1;
-              while(can_move) {
-                for(int y=0; y<MINO_HEIGHT; y++)
-                  for(int x=0; x<MINO_WIDTH; x++)
-                    if((mino_aa[mino_type2][_angle2][y][x])
-                      && (tmp[mino_y2+y][max_x2+1+x] != BLOCK_NONE))
-                      can_move = 0;
-                if(can_move) max_x2++;
-              }
-              for(int _x2=min_x2; _x2<=max_x2; _x2++) {
-                int _y2 = mino_y2, h2 = 0;
-                can_move = 1;
-                while(can_move) {
-                  for(int y=0; y<MINO_HEIGHT; y++)
-                    for(int x=0; x<MINO_WIDTH; x++)
-                      if((mino_aa[mino_type2][_angle2][y][x])
-                        && (tmp[_y2+1+y][_x2+x] != BLOCK_NONE))
-                        can_move = 0;
-                  if(can_move) _y2++;
-                }
-                for(int y=0; y<MINO_HEIGHT; y++)
-                  for(int x=0; x<MINO_WIDTH; x++)
-                    if(mino_aa[mino_type2][_angle2][y][x])
-                      tmp[y+_y2][x+_x2] = BLOCK_MINO_I + mino_type2;
-                int flag;
-                for(int y=FIELD_HEIGHT-2; y>0; y--) {
-                  flag = 0;
-                  for(int x=1; x<FIELD_WIDTH-1; x++)
-                    if(tmp[y][x] != BLOCK_NONE)
-                      flag = 1;
-                  if(flag) h2++;
-                  else break;
-                }
-                if(low > h2) {
-                  low = h2;
-                  dest_x = _x;
-                  (gps+g_n)->mino_angle = _angle;
-                }
-              }
-            }
-          }
-
           // 最大の高さ
-          int max_h = get_max_height(tmp);
+          int field_h = get_max_height(tmp);
+
+          // 最大の高さ(置いた仮ミノがyの上限)
+          int mino_h  = FIELD_HEIGHT - _y;
+
+          // 消せるライン数
+          int line    = try_line_erase(tmp);
+          //printf("\r%d", line);
 
           // 一番低くなるように積む
-          //if(low > max_h) {
-          //  low = max_h;
-          //  dest_x = _x;
-          //  (gps+g_n)->mino_angle = _angle;
-          //}
+          if(max_mino_h > mino_h) {
+            max_mino_h = mino_h;
+            dest_x = _x;
+            (gps+g_n)->mino_angle = _angle;
+          }
 
           // 同じ高さならデッドスペースの少ない方を選択
-          //if(low == max_h) {
-          //  dead_space_cnt = get_all_dead_space(tmp, max_h);
-          //  if(dead_space_cnt < min_dead_space) {
-          //    min_dead_space = dead_space_cnt;
-          //    dest_x = _x;
-          //    (gps+g_n)->mino_angle = _angle;
-          //  }
-          //}
+          if(max_mino_h == mino_h) {
+            dead_space_cnt = get_all_dead_space(tmp, field_h);
+            if(min_dead_space > dead_space_cnt) {
+              min_dead_space = dead_space_cnt;
+              dest_x = _x;
+              (gps+g_n)->mino_angle = _angle;
+            }
+          }
 
         }
       }
@@ -486,6 +432,8 @@ int main()
     }
     display(gps+g_n);
   } /*}}}*/
+
+  end();
 }
 
 void move_x(GENOME *g, int dst)
@@ -525,10 +473,10 @@ int get_all_dead_space(int tmp[][FIELD_WIDTH], int h)
   int cnt = 0;
   for(int y=FIELD_HEIGHT-2; y>FIELD_HEIGHT-2-h; y--) {
     for(int x=1; x<FIELD_WIDTH-1; x++) {
-      if(tmp[y][x] == BLOCK_NONE) {
+      if(tmp[y][x] == BLOCK_NONE && tmp[y+1][x] != BLOCK_NONE) {
         int space = 0;
         for(int y2=y-1; y2>4; y2--)
-          if(tmp[y2][x] != BLOCK_NONE) space = 1;
+          if(tmp[y2][x] != BLOCK_NONE) y2 = space = 1;
         if(space) cnt++;
       }
     }
@@ -538,17 +486,39 @@ int get_all_dead_space(int tmp[][FIELD_WIDTH], int h)
 
 void line_erase(GENOME *g)
 {
+  int line = 0;
   for(int y=4; y<FIELD_HEIGHT-1; y++) {
     int erase = 1;
     for(int x=1; x<FIELD_WIDTH-1; x++)
       if(g->field[y][x] == BLOCK_NONE)
         erase = 0;
     if(erase) {
+      line++;
       for(int y2=y; y2>0; y2--)
         for(int x=1; x<FIELD_WIDTH-1; x++)
           g->field[y2][x] = g->field[y2-1][x];
     }
   }
+  switch(line) {
+    case 1: score += 40;   break;
+    case 2: score += 100;  break;
+    case 3: score += 300;  break;
+    case 4: score += 1200; break;
+  }
+}
+
+int try_line_erase(int tmp[][FIELD_WIDTH])
+{
+  int line = 0;
+  for(int y=4; y<FIELD_HEIGHT-1; y++) {
+    int erase = 1;
+    for(int x=1; x<FIELD_WIDTH-1; x++)
+      if(tmp[y][x] == BLOCK_NONE)
+        erase = 0;
+    if(erase)
+      line++;
+  }
+  return line;
 }
 
 void init_mino(int *mino_stack)
@@ -558,7 +528,10 @@ void init_mino(int *mino_stack)
     int tmp = *(mino_stack+i);
     *(mino_stack+i) = *(mino_stack+mix);
     *(mino_stack+mix) = tmp;
- }
+  }
+  // I Z only
+  //for(int i=0; i<MINO_TYPE_MAX; i++)
+  //  *(mino_stack+i) = (rand()%2) ? 0 : 3;
 }
 
 void next_mino(GENOME *g)
@@ -568,6 +541,7 @@ void next_mino(GENOME *g)
     memcpy(g->mino_stack1, g->mino_stack2, sizeof(int)*MINO_TYPE_MAX);
     init_mino(g->mino_stack2);
   }
+  g->mino_type = g->mino_stack1[g->mino_stack_cnt];
   g->mino_type = g->mino_stack1[g->mino_stack_cnt];
   g->mino_angle = 0;
   g->mino_x     = 4;
@@ -600,6 +574,7 @@ void init(GENOME *g)
     init_mino(g->mino_stack2);
     g->mino_stack_cnt = -1;
     next_mino(gps+g_n);
+    score = 0;
   }
   else {
     //end();
@@ -621,9 +596,6 @@ void display(GENOME *g)
 
   printf("\033[H");
 
-  printf("\033[1;%dH", FIELD_WIDTH*2+2);
-  printf("generation: %03d", generation);
-
   printf("\033[2;%dH", FIELD_WIDTH*2+2);
   printf("\033[0mg_n: %03d", g_n);
 
@@ -632,7 +604,13 @@ void display(GENOME *g)
   if(!draw)
     return;
 
+  printf("\033[1;%dH", FIELD_WIDTH*2+2);
+  printf("generation: %03d", generation);
+
   printf("\033[3;%dH", FIELD_WIDTH*2+2);
+  printf("\033[0mscore: %07d", score);
+
+  printf("\033[4;%dH", FIELD_WIDTH*2+2);
   printf("next: ");
   /*{{{*/
   //for(int i=1; i<MINO_HEIGHT; i++) {
@@ -662,7 +640,7 @@ void display(GENOME *g)
   if(g->mino_stack_cnt+1 < MINO_TYPE_MAX) {
     for(int k=g->mino_stack_cnt+1; k<MINO_TYPE_MAX; k++) {
       for(int i=1; i<MINO_HEIGHT-1; i++) {
-        printf("\033[%d;%dH", i+1+next_cnt*3, FIELD_WIDTH*2+3);
+        printf("\033[%d;%dH", i+2+next_cnt*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack1[k]][MINO_ANGLE_0][i][j])
             printf("%s", block[BLOCK_MINO_I + g->mino_stack1[k]]);
@@ -674,7 +652,7 @@ void display(GENOME *g)
     }
     for(int k=0; k<g->mino_stack_cnt; k++) {
       for(int i=1; i<MINO_HEIGHT-1; i++) {
-        printf("\033[%d;%dH", i+1+next_cnt*3, FIELD_WIDTH*2+3);
+        printf("\033[%d;%dH", i+2+next_cnt*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack2[k]][MINO_ANGLE_0][i][j])
             printf("%s", block[BLOCK_MINO_I + g->mino_stack2[k]]);
@@ -687,7 +665,7 @@ void display(GENOME *g)
   } else {
     for(int k=0; k<MINO_TYPE_MAX-1; k++) {
       for(int i=1; i<MINO_HEIGHT-1; i++) {
-        printf("\033[%d;%dH", i+1+(k+1)*3, FIELD_WIDTH*2+3);
+        printf("\033[%d;%dH", i+2+(k+1)*3, FIELD_WIDTH*2+3);
         for(int j=0; j<MINO_WIDTH; j++) {
           if(mino_aa[g->mino_stack2[k]][MINO_ANGLE_0][i][j])
             printf("%s", block[BLOCK_MINO_I + g->mino_stack2[k]]);
@@ -735,7 +713,6 @@ int fixed_above_field(GENOME *g)
           && mino_aa[g->mino_type][g->mino_angle][y][x]
           && (g)->mino_y+y<MINO_HEIGHT) {
         if(++cnt==4) {
-          //end();
           draw = 0;
           init(g);
           return 1;
@@ -752,7 +729,6 @@ int suffer_next(GENOME *g)
     for(int x=0; x<MINO_WIDTH; x++) {
       if((mino_aa[g->mino_type][g->mino_angle][y][x])
         && (g->field[y+g->mino_y][x+g->mino_x])) {
-        //end();
         draw = 0;
         init(g);
         return 1;
