@@ -9,8 +9,8 @@
 #define MINO_WIDTH  4
 #define MINO_HEIGHT 4
 
-#define ELITE_LENGTH 5           // 選択するエリート(%)
-#define POPULATION 100           // 遺伝子集団の数
+#define ELITE_LENGTH 10           // 選択するエリート(%)
+#define POPULATION 10           // 遺伝子集団の数
 #define INDIVIDUAL_MUTATION 1    // 個体突然変異確立(%)
 #define GENERATION_MAX 100       // Max世代数
 
@@ -319,7 +319,7 @@ int g_n        = -1;  // 現在の個体
 
 // typedef int bool;
 int draw       = 1;   // 描画するか否か
-int devote     = 1;   // 学習に専念するか
+int devote     = 0;   // 学習に専念するか
 
 
 // Collision Detection
@@ -335,7 +335,7 @@ int suffer_next(GENOME *g);
 // ※デッドスペース -> 上下にブロックがあるスペース
 int get_all_dead_space(int tmp[][FIELD_WIDTH], int h);
 
-// 突出列の数を返す
+// 突出列の数を返す *全体の平均の高さとの差が4以上の列
 int protrusion(int tmp[][FIELD_WIDTH]);
 
 // 積まれているブロックの一番上の高さ
@@ -343,6 +343,7 @@ int get_max_height(int tmp[][FIELD_WIDTH]);
 
 // 消せるラインがあるなら消し, 埋め, スコア加算
 void line_erase(GENOME *g);
+
 // 仮ミノ時の消せるライン数を返す
 int get_line_erase(int tmp[][FIELD_WIDTH]);
 
@@ -362,7 +363,7 @@ void init(GENOME *g);
 void select_elite();
 
 // 交叉
-void crossover(int *idx);
+void crossover();
 
 // 突然変異
 void mutation();
@@ -392,8 +393,16 @@ int main()
     for(int j=0; j<EVAL_MAX; j++)
       (gps+i)->genos[j] = rand() % 100;
 
+  // 任意のエリートを使う
+  {
+    int elite[] = { 33, 21, 53, 90, 75 };
+    for(int i=0; i<EVAL_MAX; i++)
+      (gps+0)->genos[i] = elite[i];
+  }
+
   for(int i=0; i<POPULATION; i++)
     init(gps+i);
+
   g_n = 0;
 
   printf("\033[2J\033[?25l");
@@ -423,12 +432,7 @@ int main()
         continue;
 
       int dest_x = (gps+g_n)->mino_x,
-          eval = -65536,
-          field_h,
-          mino_h,
-          line,
-          dead_space_cnt,
-          pro_row;
+          eval = -65536;
 
       for(int _angle=MINO_ANGLE_0; _angle<MINO_ANGLE_MAX; _angle++) {
         // Range of X coordinate
@@ -460,13 +464,6 @@ int main()
 
             int mino_x2 = 4;
             int mino_y2 = mino_next2 == MINO_TYPE_I ? 2 : 1;
-
-            // Next2ミノ生成 -> 生成はしなくて良い
-            //for(int y=0; y<MINO_HEIGHT; y++)
-            //  for(int x=0; x<MINO_WIDTH; x++)
-            //    if(mino_aa[mino_next2][MINO_ANGLE_0][y][x])
-            //      tmp[y+mino_y2][x+mino_x2]
-            //        = BLOCK_MINO_I + mino_next2;
 
             for(int _angle2=MINO_ANGLE_0; _angle2<MINO_ANGLE_MAX; _angle2++) {
               int min_x2, max_x2;
@@ -516,25 +513,25 @@ int main()
 
                 // 最大の高さ
                 // 低いほど良い
-                field_h = get_max_height(tmp2) * -1;
-                if(field_h < -20) field_h *= 2;
+                int field_h = FIELD_HEIGHT - get_max_height(tmp2);
 
                 // 最大の高さ(置いた仮ミノがyの上限)
                 // 低いほど良い
-                mino_h  = (FIELD_HEIGHT - _y/*2*/) * -1;
+                int mino_h  = _y;
 
                 // 消せるライン数
                 // 多いほど良い
-                line    = get_line_erase(tmp2);
-                line *= line;
+                int line    = get_line_erase(tmp2);
 
                 // デッドスペースの数
                 // 少ない方が良い
-                dead_space_cnt = get_all_dead_space(tmp2, field_h) * -1;
+                int dead_space_cnt
+                  = (FIELD_HEIGHT * FIELD_WIDTH) / 2
+                  - get_all_dead_space(tmp2, field_h);
 
                 // 突出列数
                 // 少ない方が良い
-                pro_row = protrusion(tmp2) * -1;
+                int pro_row = FIELD_WIDTH - 2 - protrusion(tmp2);
 
                 // Iミノ置きたい
 
@@ -554,45 +551,6 @@ int main()
               }
             }//_angle2
           }
-
-
-          //// 最大の高さ
-          //// 低いほど良い
-          //field_h = get_max_height(tmp) * -1;
-          //if(field_h < -20) field_h *= 2;
-
-          //// 最大の高さ(置いた仮ミノがyの上限)
-          //// 低いほど良い
-          //mino_h  = (FIELD_HEIGHT - _y) * -1;
-
-          //// 消せるライン数
-          //// 多いほど良い
-          //line    = get_line_erase(tmp);
-          //line *= line;
-
-          //// デッドスペースの数
-          //// 少ない方が良い
-          //dead_space_cnt = get_all_dead_space(tmp, field_h) * -1;
-
-          //// 突出列数
-          //// 少ない方が良い
-          //pro_row = protrusion(tmp) * -1;
-
-          //// Iミノ置きたい
-
-          //// evaluation()
-          //field_h *= (gps+g_n)->genos[EVAL_FIELD_HEIGHT];
-          //mino_h *= (gps+g_n)->genos[EVAL_MINO_HEIGHT];
-          //line *= (gps+g_n)->genos[EVAL_LINE_ERASE];
-          //dead_space_cnt *= (gps+g_n)->genos[EVAL_DEAD_SPACE];
-          //pro_row *= (gps+g_n)->genos[EVAL_PROTRUSION];
-
-          //int _eval = (field_h + mino_h + line + dead_space_cnt + pro_row);
-          //if(eval < _eval) {
-          //  eval = _eval;
-          //  dest_x = _x;
-          //  (gps+g_n)->mino_angle = _angle;
-          //}
 
           // 評価関数のデバッグ用
           //{
@@ -817,21 +775,22 @@ void select_elite()
       (gps+index[POPULATION-i-1])->genos[j] = tmp;
     }
   }
-  for(int i=0; i<POPULATION/2; i++)
-    for(int j=0; j<EVAL_MAX; j++) {
-      (gps+index[POPULATION/2+i])->genos[j]
-        = (gps+index[POPULATION-i-1])->genos[j];
-    }
-  crossover(index);
+  // 上位50% を 下位50%にコピー
+  //for(int i=0; i<POPULATION/2; i++)
+  //  for(int j=0; j<EVAL_MAX; j++) {
+  //    (gps+index[POPULATION/2+i])->genos[j]
+  //      = (gps+index[POPULATION-i-1])->genos[j];
+  //  }
+  crossover();
   mutation();
 
-  // 10% random
-  for(int i=POPULATION-10; i<POPULATION; i++)
+  // 下位10% random
+  for(int i=POPULATION-(POPULATION/100)*10; i<POPULATION; i++)
     for(int j=0; j<EVAL_MAX; j++)
       (gps+index[i])->genos[j] = rand() % 100;
 }
 
-void crossover(int *idx)
+void crossover()
 {
   // 仮
   for(int i=(POPULATION/100)*ELITE_LENGTH; i<POPULATION-1; i+=2) {
