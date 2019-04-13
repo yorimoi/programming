@@ -13,8 +13,9 @@
 #define POPULATION 100           // 遺伝子集団の数
 #define INDIVIDUAL_MUTATION 1    // 個体突然変異確立(%)
 #define GENERATION_MAX 100       // Max世代数
-#define COEFFICIENT 512-256          // 係数
+#define COEFFICIENT 199-99          // 係数
 #define INFINITE 0               // 世代数無限
+#define FILENAME "log.txt"       // ログ出力ファイル名
 
 
 enum { /*{{{*/
@@ -50,7 +51,6 @@ enum { /*{{{*/
 
 enum { /*{{{*/
   EVAL_FIELD_HEIGHT,
-  EVAL_MINO_HEIGHT,
   EVAL_DEAD_SPACE,
   EVAL_LINE_ERASE,
   EVAL_PROTRUSION,
@@ -439,7 +439,11 @@ int main()
                     //{ -6,-30, -8, 23,-15 }; // 1534, 199-99
                     //{ -3,-97,-47, 48,-76 }; // 1670, 199-99
                     //{-19,-84,-34, 30,-73 }; // 2322, 199-99
-                    { -80, 196, -88, 187,-155}; // 1729, 512-256
+                    //{ -80, 196, -88, 187,-155}; // 1729, 512-256
+                    //{-139,  17, -63, 172,-176}; // 1443, 512-256
+                    //{-228,  18,-208, 235,-242}; // 2153, 512-256
+                    //{  -2, -28,  34, -81}; // 2649, 199-99
+                    { -41, -47,  17, -55}; // 2202, 199-99
     for(int i=0; i<EVAL_MAX; i++)
       (gps+0)->genos[i] = genomes[i];
   }
@@ -541,20 +545,6 @@ int main()
                 //int field_h = FIELD_HEIGHT - get_max_height(tmp2);
                 int field_h = get_max_height(tmp2);
 
-                // Next2ミノ の最大の高さ
-                // これ要らない
-                // 低いほど良い
-                int mino_h = -1;
-                for(int i=0; i<MINO_HEIGHT-1; i++)
-                  for(int j=1; j<MINO_WIDTH-1; j++) {
-                    if((tmp2[_y2+i][_x2+j])
-                        && (mino_aa[mino_next2][_angle2][i][j]))
-                      mino_h = _y2 + i;
-                    if(mino_h >= 0)
-                      break;
-                  }
-                mino_h = FIELD_HEIGHT - mino_h;
-
                 // 消せるライン数
                 // 多いほど良い?
                 int line = get_erase_line(tmp2);
@@ -580,17 +570,15 @@ int main()
 
                 // evaluation()
                 field_h *= (gps+g_n)->genos[EVAL_FIELD_HEIGHT];
-                mino_h *= (gps+g_n)->genos[EVAL_MINO_HEIGHT];
                 line *= (gps+g_n)->genos[EVAL_LINE_ERASE];
                 dead_space_cnt *= (gps+g_n)->genos[EVAL_DEAD_SPACE];
                 pro_row *= (gps+g_n)->genos[EVAL_PROTRUSION];
 
                 int _eval = (field_h
-                           + mino_h
                            + line
                            + dead_space_cnt
                            + pro_row
-                           //+ all_block
+                           + all_block
                            );
                 if(eval < _eval) {
                   eval = _eval;
@@ -1152,12 +1140,36 @@ void end()
   printf("\033[0m\033[2J");
   printf("\033[2;1H\033[0mgeneration: %d", generation-1);
   printf("\033[3;1H\033[0mmax_line_total: %07d", max_line_total);
-  printf("\033[4;1H\033[0melite_of_elite: {%3d", elite_of_elite[0]);
+  printf("\033[4;1H\033[0melite_of_elite: {%4d", elite_of_elite[0]);
   for(int i=1; i<EVAL_MAX; i++)
-    printf(",%3d", elite_of_elite[i]);
-  printf(" }");
+    printf(",%4d", elite_of_elite[i]);
+  printf("}\n");
+  printf("\033[0m\033[?25h");
 
-  printf("\033[0m\033[?25h\n");
+  FILE *fp;
+  if((fp = fopen(FILENAME, "a")) == NULL) {
+    fprintf(stderr, "%s: Open failured.\n", FILENAME);
+    exit(1);
+  }
+
+  time_t t = time(NULL);
+  struct tm *local = localtime(&t);
+
+  fprintf(fp, "%04d/", local->tm_year + 1900);
+  fprintf(fp, "%02d/", local->tm_mon + 1);
+  fprintf(fp, "%02d ", local->tm_mday);
+  fprintf(fp, "%02d:", local->tm_hour);
+  fprintf(fp, "%02d:", local->tm_min);
+  fprintf(fp, "%02d\n", local->tm_sec);
+
+  fprintf(fp, "generation: %d\n", generation-1);
+  fprintf(fp, "max_line_total: %07d\n", max_line_total);
+  fprintf(fp, "elite_of_elite: {%4d", elite_of_elite[0]);
+  for(int i=1; i<EVAL_MAX; i++)
+    fprintf(fp, ",%4d", elite_of_elite[i]);
+  fprintf(fp, "}\n\n");
+
+  fclose(fp);
   exit(0);
 }
 
