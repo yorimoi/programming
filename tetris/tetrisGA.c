@@ -54,6 +54,7 @@ enum { /*{{{*/
   EVAL_DEAD_SPACE,
   EVAL_LINE_ERASE,
   EVAL_PROTRUSION,
+  EVAL_DIFF,
   EVAL_MAX,
 }; /*}}}*/
 
@@ -353,6 +354,9 @@ int fixed_above_field(GENOME *g);
 // ネクストミノがフィールドに被っているか
 int suffer_next(GENOME *g);
 
+// 高低差(各列において右隣の列との高低差の絶対値の合計)
+int diff_in_height(int tmp[][FIELD_WIDTH]);
+
 // 仮フィールド上の全てのデッドスペースの個数を返す
 // ※デッドスペース -> 上下にブロックがあるスペース
 int get_dead_space(int tmp[][FIELD_WIDTH], int h);
@@ -443,7 +447,9 @@ int main()
                     //{-139,  17, -63, 172,-176}; // 1443, 512-256
                     //{-228,  18,-208, 235,-242}; // 2153, 512-256
                     //{  -2, -28,  34, -81}; // 2649, 199-99
-                    { -41, -47,  17, -55}; // 2202, 199-99
+                    //{ -41, -47,  17, -55}; // 2202, 199-99
+                    //{ -32, -69,  97, -84, -19}; // 16493, 199-99
+                    { -32, -69,  97, -84, -19}; // 65341, 199-99 Rework
     for(int i=0; i<EVAL_MAX; i++)
       (gps+0)->genos[i] = genomes[i];
   }
@@ -562,23 +568,21 @@ int main()
                 //int pro_row = FIELD_WIDTH - 2 - protrusion(tmp2);
                 int pro_row = protrusion(tmp2);
 
-                // フィールド上のブロックの数
-                // 多い方がはみ出てない
-                // これは重みを変える必要ない
-                // うまくいかない ;(
-                int all_block = get_all_block(tmp/*2*/);
+                // 高低差
+                int diff = diff_in_height(tmp2);
 
                 // evaluation()
                 field_h *= (gps+g_n)->genos[EVAL_FIELD_HEIGHT];
                 line *= (gps+g_n)->genos[EVAL_LINE_ERASE];
                 dead_space_cnt *= (gps+g_n)->genos[EVAL_DEAD_SPACE];
                 pro_row *= (gps+g_n)->genos[EVAL_PROTRUSION];
+                diff *= (gps+g_n)->genos[EVAL_DIFF];
 
                 int _eval = (field_h
                            + line
                            + dead_space_cnt
                            + pro_row
-                           + all_block
+                           + diff
                            );
                 if(eval < _eval) {
                   eval = _eval;
@@ -633,6 +637,26 @@ void move_x(GENOME *g, int dst)
       display(g);
     }
   }
+}
+
+int diff_in_height(int tmp[][FIELD_WIDTH])
+{
+  int diff = 0;
+  int h[FIELD_WIDTH-2] = {};
+  for(int x=1; x<FIELD_WIDTH-1; x++)
+    for(int y=0; y<FIELD_HEIGHT-1; y++)
+      if(tmp[y][x] != BLOCK_NONE) {
+        h[x-1] = FIELD_HEIGHT - 1 - y;
+        break;
+      }
+  for(int i=0; i<FIELD_WIDTH-2-1; i++) {
+    int d = h[i] - h[i+1];
+    if(d < 0)
+      d *= -1;
+    diff += d;
+  }
+
+  return diff;
 }
 
 int protrusion(int tmp[][FIELD_WIDTH])
