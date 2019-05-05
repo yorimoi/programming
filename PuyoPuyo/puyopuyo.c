@@ -20,6 +20,7 @@ enum PUYO {
     PY_PURPLE,
     PY_DISAPPEAR,
     PY_MAX,
+    PY_TYPE_MAX = 4,
     PY_COLOR_MAX = 5,
 
     PY_START_X = 3,
@@ -66,6 +67,8 @@ int puyo_x = PY_START_X,
     puyo_color[2],
     puyo_nexts[2][2],
     puyo_angle;
+
+int *puyo_types;
 
 int chain,
     dc,    // difference color
@@ -252,8 +255,8 @@ void key_operation() {
 }
 
 void puyo_init(int *_colors) {
-    _colors[0] = rand() % PY_COLOR_MAX;
-    _colors[1] = rand() % PY_COLOR_MAX;
+    _colors[0] = puyo_types[rand() % PY_TYPE_MAX];
+    _colors[1] = puyo_types[rand() % PY_TYPE_MAX];
 }
 
 void puyo_next() {
@@ -271,6 +274,23 @@ void field_init() {
     puyo_init(puyo_nexts[1]);
     puyo_next();
     printf("\033[2J\033[H\033[?25l");
+}
+
+int *types_init(int *types, int size) {
+    int typemax[PY_COLOR_MAX];
+    types = malloc(sizeof(int *) * size);
+    for(int i=0; i<PY_COLOR_MAX; i++)
+        typemax[i] = i;
+    for(int i=0; i<PY_COLOR_MAX; i++) {
+        int j = rand() % PY_COLOR_MAX;
+        int t = typemax[i];
+        typemax[i] = typemax[j];
+        typemax[j] = t;
+    }
+    for(int i=0; i<size; i++)
+        types[i] = typemax[i];
+
+    return types;
 }
 
 void game_loop() {
@@ -347,6 +367,7 @@ void game_loop() {
 
 int main() {
     srand((unsigned int)time(NULL));
+    puyo_types = types_init(puyo_types, PY_TYPE_MAX);
     field_init();
     game_loop();
 
