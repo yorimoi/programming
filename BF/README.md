@@ -12,3 +12,10 @@ make && ./mybf "+++++++++[->++++++++>+++++++++++>+++++<<<]>.
 ## Debug
 結果をmainの戻り値で返すように変更して,  
 `make test`
+
+## mp3bf
+気が狂って作っただけ  
+
+### Usage
+`g++ mp3bf.cpp && ./a.out hello.mp3`  
+`Hello, world!`  
