@@ -1,0 +1,88 @@
+h1 {
+  margin: 10px 10px 5px 10px;
+  border-bottom: solid 2px green;
+  background-color: #aaffaa;
+  border-radius: 10px;
+}
+
+input, textarea {
+  border: solid 2px green;
+  font-size: 14pt;
+  padding: 2px;
+  display:inline;
+  vertical-align:middle;
+}
+
+button {
+  background-color : #3388dd;
+  color: white;
+  font-size: 16pt;
+  border: none;
+  border-radius: 5px;
+}
+
+td {
+    width: 8%;
+    position: relative;
+}
+
+.cell_bg {
+    float: left;
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background-color: #00FF00;
+    border: solid 2px #000000;
+}
+
+.white_circle {
+    position: relative;
+    width: 54px;
+    height: 54px;
+    top: 4px;
+    left: 4px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+}
+
+.black_circle {
+    position: relative;
+    width: 54px;
+    height: 54px;
+    top: 4px;
+    left: 4px;
+    border-radius: 50%;
+    background-color: #000000;
+}
+
+#main {
+    /*background-color: #00ffff;*/
+}
+
+.clear {
+    clear: both;
+}
+
+#turn {
+    text-align: center;
+}
+
+#turn_color {
+    margin: 0 auto;
+    position: relative;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #000000;
+    border: solid 2px #000000;
+}
+
+#board {
+    max-width: 512px;
+    margin: 0 auto;
+}
+
+#message {
+    text-align: center;
+    visibility: hidden;'
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <link type='text/css' rel='stylesheet' href='css/style.css' />
+        <script type='text/javascript' src='js/script.js'></script>
+        <title>Simple Reversi</title>
+    </head>
+    <body>
+        <div style='display:none;'>
+            <div id='cell'  class='cell_bg'></div>
+            <div id='white' class='cell_bg'><div class='white_circle'></div></div>
+            <div id='black' class='cell_bg'><div class='black_circle'></div></div>
+        </div>
+
+        <div id='menu' align='center'>
+            <h1>Simple Reversi</h1>
+            <br />
+            Name&nbsp;:&nbsp;<input type='text' size='8' max-size='8' id='name' />
+            <br />
+            <br />
+            <input type='button' value='Init' id='button_init' />
+        </div>
+
+        <br />
+
+        <div id='main'>
+            <div id='turn'></div>
+            <div id='turn_color'></div>
+            </div>
+            <br />
+            <div id='board'></div>
+            <div class='clear'></div>
+            <div id='message'></div>
+        </div>
+    </body>
+</html>
