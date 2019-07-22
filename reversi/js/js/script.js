@@ -147,13 +147,14 @@ function turn_change() {
 }
 
 function cpu_move() {
-    let weight = -256;
+    let weight = -127;
     let x2, y2;
     if(turn == cpu) {
         for(let y=1; y<=8; ++y) {
             for(let x=1; x<=8; ++x) {
                 if(cells[y][x] == 0  && check_cells(x, y, false)) {
                     if(weights[y][x] > weight) {
+                        weight = weights[y][x];
                         x2 = x;
                         y2 = y;
                     }
