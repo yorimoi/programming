@@ -54,12 +54,15 @@ function draw() {
                         setTimeout(function() {
                             if(current_turn == cpu)
                                 cpu_move();
-                        }, 1000);
+                        }, 500);
                     }
                 };
             }
         }
     }
+
+    let [black, white] = count_bw();
+    document.getElementById('score').innerHTML = "BLACK:" + black + "&nbsp;&nbsp;&nbsp;WHITE:" + white;
 }
 
 function check_cells(x, y, flip) {
@@ -119,7 +122,7 @@ function turn_change() {
                 msg.style.visibility = "visible";
                 setTimeout(function() {
                     msg.style.visibility = "hidden";
-                }, 3000);
+                }, 5000);
                 if(turn == cpu)
                     cpu_move();
                 return;
@@ -128,22 +131,25 @@ function turn_change() {
     }
 
     // GAME OVER
-    let black = 0,
-        white = 0;
+    let [black, white] = count_bw();
     gameover = true;
+    let msg = document.getElementById('message');
+    msg.innerHTML = black > white ? "YOU WIN!!" : white > black ? "YOU LOSE..." : "DRAW";
+    msg.style.visibility = "visible";
+}
+
+function count_bw() {
+    let b = 0,
+        w = 0;
     for(let y=1; y<=8; ++y) {
         for(let x=1; x<=8; ++x) {
             if(cells[y][x] == 1)
-                ++black;
+                ++b;
             else if(cells[y][x] == 2)
-                ++white;
+                ++w;
         }
     }
-    let msg = document.getElementById('message');
-    let score = "BLACK&nbsp;" + black + " : WHITE&nbsp;" + white + "&nbsp;&nbsp;";
-    let result = black > white ? "BLACK WIN!" : white > black ? "WHITE WIN!" : "DRAW";
-    msg.innerHTML = score + result;
-    msg.style.visibility = "visible";
+    return [b, w];
 }
 
 function cpu_move() {

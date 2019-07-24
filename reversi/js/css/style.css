@@ -63,7 +63,7 @@ td {
     clear: both;
 }
 
-#turn {
+#turn, #score {
     text-align: center;
 }
 
@@ -86,3 +86,4 @@ td {
     text-align: center;
     visibility: hidden;'
 }
+
