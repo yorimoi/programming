@@ -19,6 +19,7 @@ struct Token {
     TokenType type;
     Token *next;
     int val;
+    char ch;
 };
 
 typedef struct Node Node;
@@ -32,51 +33,40 @@ struct Node {
 
 Token *token;
 
-int consume(TokenType type);
+int consume(char op);
 Token *tokenize(char *str);
-Token *new_token(TokenType type, Token *cur);
+Token *new_token(TokenType type, Token *cur, char ch);
 Token *new_token_num(Token *cur, int val);
 
-Node *parse(void);
-int codegen(Node *node);
+void gen(Node *node);
 
-int main(int argc, char **argv) {
-    int i = 0;
 
-    if (argc != 2) {
-        fprintf(stderr, "Invalid arguments\n");
-        return 1;
-    }
+//
+// stack
+//
 
-    token = tokenize(argv[1]);
-    while (token->type != TT_EOF) {
-        switch(token->type) {
-        case TT_PLUS:
-            token = token->next;
-            i += token->val;
-            break;
-        case TT_MINUS:
-            token = token->next;
-            i -= token->val;
-            break;
-        case TT_INT:
-            i = token->val;
-            break;
-        }
-        token = token->next;
-    }
-    //Node *node = parse();
-    //codegen(node);
+int sp = 0, ary[100];
 
-    return i;
+void push(int val) {
+    ary[sp++] = val;
 }
+
+int pop() {
+    if (sp < 1) {
+        fprintf(stderr, "stack null\n");
+        exit(1);
+    }
+    return ary[--sp];
+}
+
+
 
 //
 // Tokenizer
 //
 
-int consume(TokenType type) {
-    if (token->type != type) {
+int consume(char op) {
+    if (token->ch != op) {
         return 0;
     }
     token = token->next;
@@ -96,22 +86,22 @@ Token *tokenize(char *str) {
 
         if (*p == '+') {
             ++p;
-            cur = new_token(TT_PLUS, cur);
+            cur = new_token(TT_PLUS, cur, '+');
             continue;
         }
         if (*p == '-') {
             ++p;
-            cur = new_token(TT_MINUS, cur);
+            cur = new_token(TT_MINUS, cur, '-');
             continue;
         }
         if (*p == '*') {
             ++p;
-            cur = new_token(TT_ASTERISK, cur);
+            cur = new_token(TT_ASTERISK, cur, '*');
             continue;
         }
         if (*p == '/') {
             ++p;
-            cur = new_token(TT_SLASH, cur);
+            cur = new_token(TT_SLASH, cur, '/');
             continue;
         }
 
@@ -124,19 +114,20 @@ Token *tokenize(char *str) {
         exit(22);
     }
 
-    new_token(TT_EOF, cur);
+    new_token(TT_EOF, cur, 0);
     return head.next;
 }
 
-Token *new_token(TokenType type, Token *cur) {
+Token *new_token(TokenType type, Token *cur, char ch) {
     Token *tok = calloc(1, sizeof(Token));
     tok->type  = type;
+    tok->ch    = ch;
     cur->next  = tok;
     return tok;
 }
 
 Token *new_token_num(Token *cur, int val) {
-    Token *tok = new_token(TT_INT, cur);
+    Token *tok = new_token(TT_INT, cur, 0);
     tok->val   = val;
     return tok;
 }
@@ -175,20 +166,13 @@ static Node *expr(void);
 static Node *mul(void);
 static Node *primary(void);
 
-Node *parse(void) {
-    Node head = {0};
-    Node *code = &head;
-    code = expr();
-    return &head;
-}
-
 static Node *expr(void) {
     Node *node = mul();
 
     for (;;) {
-        if (consume(TT_PLUS)) {
+        if (consume('+')) {
             node = new_binary(TT_PLUS, node, mul());
-        } else if (consume(TT_MINUS)) {
+        } else if (consume('-')) {
             node = new_binary(TT_MINUS, node, mul());
         } else {
             return node;
@@ -200,9 +184,9 @@ static Node *mul(void) {
     Node *node = primary();
 
     for (;;) {
-        if (consume(TT_ASTERISK)) {
+        if (consume('*')) {
             node = new_binary(TT_ASTERISK, node, primary());
-        } else if (consume(TT_SLASH)) {
+        } else if (consume('/')) {
             node = new_binary(TT_SLASH, node, primary());
         } else {
             return node;
@@ -221,8 +205,49 @@ static Node *primary(void) {
     return new_num(val);
 }
 
-int codegen(Node *node) {
-    int i = 0;
-    return i;
+void gen(Node *node) {
+    if (node->type == TT_INT) {
+        push(node->val);
+        return;
+    }
+
+    gen(node->lhs);
+    gen(node->rhs);
+
+    int i = pop();
+    int j = pop();
+
+    switch(node->type) {
+    case TT_PLUS:
+        push(j + i);
+        break;
+    case TT_MINUS: {
+        push(j - i);
+        break;
+    }
+    case TT_ASTERISK:
+        push(j * i);
+        break;
+    case TT_SLASH:
+        push(j / i);
+        break;
+    default:
+        break;
+    }
+
+    return;
+}
+
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        fprintf(stderr, "Invalid arguments\n");
+        return 1;
+    }
+
+    token = tokenize(argv[1]);
+    Node *node = expr();
+    gen(node);
+
+    return pop();
 }
 

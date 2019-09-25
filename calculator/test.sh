@@ -24,7 +24,7 @@ assert 21 '5+20-4'
 
 assert 14 '1*2+3*4'
 assert 10 '4-3*2+12'
-assert 0 '6/3-2*9'
+assert 16 '6/3-2+16'
 
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"
