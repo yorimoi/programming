@@ -145,9 +145,11 @@ Token *new_token_num(Token *cur, int val) {
 //
 
 /*
- *  <expr> ::= <mul> ("+" <mul> | "-" <mul>)*
- *  <mul>  ::= <num> ("*" <num> | "/" <num>)*
- *  <num>  ::= "0-9" ("0-9")*
+ *  <expr>    ::= <mul> ("+" <mul> | "-" <mul>)*
+ *  <mul>     ::= <unary> ("*" <unary> | "/" <unary>)*
+ *  <unary>   ::= ('+' | '-')? <primary>
+ *  <primary> ::= <num> | '(' <expr> ')'
+ *  <num>     ::= "0-9" ("0-9")*
  */
 
 static Node *new_node(TokenType type) {
@@ -171,6 +173,7 @@ static Node *new_num(int val) {
 
 static Node *expr(void);
 static Node *mul(void);
+static Node *unary(void);
 static Node *primary(void);
 
 static Node *expr(void) {
@@ -188,16 +191,26 @@ static Node *expr(void) {
 }
 
 static Node *mul(void) {
-    Node *node = primary();
+    Node *node = unary();
 
     for (;;) {
         if (consume('*')) {
-            node = new_binary(TT_ASTERISK, node, primary());
+            node = new_binary(TT_ASTERISK, node, unary());
         } else if (consume('/')) {
-            node = new_binary(TT_SLASH, node, primary());
+            node = new_binary(TT_SLASH, node, unary());
         } else {
             return node;
         }
+    }
+}
+
+static Node *unary(void) {
+    if (consume('+')) {
+        return unary();
+    } else if (consume('-')) {
+        return new_binary(TT_MINUS, new_num(0), unary());
+    } else {
+        return primary();
     }
 }
 

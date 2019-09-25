@@ -30,6 +30,10 @@ assert 15 '5*(9-6)'
 assert  4 '(3+5)/2'
 assert  1 '((1-2)*3)+4'
 
+assert 10 '-10+20'
+assert 10 '- -10'
+assert 10 '- - +10'
+
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"
 else
