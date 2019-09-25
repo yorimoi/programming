@@ -3,12 +3,13 @@
 #include <ctype.h>
 
 typedef enum {
-    TT_INT,
+    TT_INT,      // Integer
+    TT_BRA,      // '(' ')'
 
-    TT_PLUS,
-    TT_MINUS,
-    TT_ASTERISK,
-    TT_SLASH,
+    TT_PLUS,     // '+'
+    TT_MINUS,    // '-'
+    TT_ASTERISK, // '*'
+    TT_SLASH,    // '/'
 
     TT_ILLEGAL,
     TT_EOF,
@@ -110,6 +111,12 @@ Token *tokenize(char *str) {
             continue;
         }
 
+        if (*p == '(' || *p == ')') {
+            cur = new_token(TT_BRA, cur, *p);
+            ++p;
+            continue;
+        }
+
         fprintf(stderr ,"Non expected: \"%c\"\n", *p);
         exit(22);
     }
@@ -195,6 +202,15 @@ static Node *mul(void) {
 }
 
 static Node *primary(void) {
+    if (consume('(')) {
+        Node *node = expr();
+        if (!consume(')')) {
+            fprintf(stderr, "expected ')'\n");
+            exit(1);
+        }
+        return node;
+    }
+
     if (token->type != TT_INT) {
         fprintf(stderr, "expected a number\n");
         exit(42);

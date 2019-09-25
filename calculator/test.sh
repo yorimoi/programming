@@ -18,13 +18,17 @@ function assert() {
     fi
 }
 
-assert 0 '0'
+assert  0 '0'
 assert 42 '42'
 assert 21 '5+20-4'
 
 assert 14 '1*2+3*4'
 assert 10 '4-3*2+12'
 assert 16 '6/3-2+16'
+
+assert 15 '5*(9-6)'
+assert  4 '(3+5)/2'
+assert  1 '((1-2)*3)+4'
 
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"
