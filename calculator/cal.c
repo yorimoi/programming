@@ -74,6 +74,49 @@ int pow_(int j, int i) {
     return k;
 }
 
+//
+// string
+//
+
+int strcmp_(const char *str1, const char *str2)
+{
+    for (int i = 0;; ++i) {
+        if (str1[i] == 0 && str2[i] == 0) {
+            return 0;
+        }
+        if (str1[i] != str2[i]) {
+            break;
+        }
+    }
+
+    return 1;
+}
+
+int strncmp_(const char *str1, const char *str2, int n)
+{
+    for (int i = 0; i < n; ++i) {
+        if (str1[i] == 0 && str2[i] == 0) {
+            return 0;
+        }
+        if (str1[i] != str2[i]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+unsigned int strlen_(const char *str)
+{
+    unsigned int len = 0;
+
+    while (*str++) {
+        ++len;
+    }
+
+    return len;
+}
+
 
 //
 // Tokenizer
@@ -139,7 +182,8 @@ Token *tokenize(char *str) {
             continue;
         }
 
-        fprintf(stderr, "Non expected: \"%c\"\n", *p);
+        fprintf(stderr, "Non expected: \"%c\"\n", *p++);
+        return NULL;
     }
 
     new_token(TT_EOF, cur, 0);
@@ -316,9 +360,36 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    token = tokenize(argv[1]);
-    Node *node = expr();
-    gen(node);
+    if (!strcmp_(argv[1], "repl")) {
+        char input[128];
+        printf("Wellcome to my calculator REPL!\n");
+        printf("Type `quit` to exit\n\n");
+        while (1) {
+            printf(">> ");
+            fgets(input, 127, stdin);
+            if (strlen_(input) == 1) {
+                continue;
+            }
+            if (!strncmp_(input, "quit", 4)) {
+                return 0;
+            }
+            token = tokenize(input);
+            if (token) {
+                Node *node = expr();
+                gen(node);
+                printf("%d\n", pop());
+            }
+        }
+    } else {
+        token = tokenize(argv[1]);
+        if (token) {
+            Node *node = expr();
+            gen(node);
+        } else {
+            fprintf(stderr, "Failed tokenize\n");
+            return 1;
+        }
+    }
 
     return pop();
 }

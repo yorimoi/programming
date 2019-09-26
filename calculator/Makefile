@@ -21,8 +21,11 @@ testc: $(CTARGET)
 	./test.sh
 	@mv $(TARGET) $(CTARGET)
 
+repl: $(CTARGET)
+	@./$(CTARGET) repl
+
 clean:
 	rm -rf *.exe
 	rm -rf $(CTARGET)
 
-.PHONY: all clean test testc
+.PHONY: all clean test testc repl
