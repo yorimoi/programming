@@ -236,8 +236,9 @@ Token *new_token_num(Token *cur, int val) {
 //
 
 /*
- *  <expr>    ::= <mul> ("+" <mul> | "-" <mul>)*
- *  <mul>     ::= <unary> ("*"|"**"|"^" <unary> | "/" <unary>)*
+ *  <expr>    ::= <add> ("&"|"|"|"^" <add>)*
+ *  <add>     ::= <mul> ("+" <mul> | "-" <mul>)*
+ *  <mul>     ::= <unary> ("*"|"**"|"/"|"%" <unary>)*
  *  <unary>   ::= ('+' | '-')? <fact>
  *  <fact>    ::= <primary> '!'?
  *  <primary> ::= <num> | '(' <expr> ')'
@@ -264,12 +265,29 @@ static Node *new_num(int val) {
 }
 
 static Node *expr(void);
+static Node *add(void);
 static Node *mul(void);
 static Node *unary(void);
 static Node *fact(void);
 static Node *primary(void);
 
 static Node *expr(void) {
+    Node *node = add();
+
+    for (;;) {
+        if (consume('&')) {
+            node = new_binary(TT_AND, node, add());
+        } else if (consume('|')) {
+            node = new_binary(TT_OR, node, add());
+        } else if (consume('^')) {
+            node = new_binary(TT_XOR, node, add());
+        } else {
+            return node;
+        }
+    }
+}
+
+static Node *add(void) {
     Node *node = mul();
 
     for (;;) {
@@ -297,8 +315,6 @@ static Node *mul(void) {
             node = new_binary(TT_SLASH, node, unary());
         } else if (consume('%')) {
             node = new_binary(TT_PERCENT, node, unary());
-        } else if (consume('^')) {
-            node = new_binary(TT_POWER, node, unary());
         } else {
             return node;
         }
@@ -386,6 +402,15 @@ void gen(Node *node) {
         break;
     case TT_FACT:
         push(factorial(i));
+        break;
+    case TT_AND:
+        push(i&j);
+        break;
+    case TT_OR:
+        push(i|j);
+        break;
+    case TT_XOR:
+        push(i^j);
         break;
     default:
         break;
