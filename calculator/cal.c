@@ -12,6 +12,7 @@ typedef enum {
     TT_SLASH,    // '/'
     TT_PERCENT,  // '%'
     TT_POWER,    // "**", '^'
+    TT_FACT,     // '!' Factorial
 
     TT_ILLEGAL,
     TT_EOF,
@@ -72,6 +73,12 @@ int pow_(int j, int i) {
     int k = j;
     for (; i; --i) k *= j;
     return k;
+}
+
+int fact(int val) {
+    int fact = 1;
+    for (; val;) fact *= val--;
+    return fact;
 }
 
 //
@@ -170,6 +177,10 @@ Token *tokenize(char *str) {
             cur = new_token(TT_POWER, cur, *p++);
             continue;
         }
+        if (*p == '!') {
+            cur = new_token(TT_FACT, cur, *p++);
+            continue;
+        }
 
         if (isdigit(*p)) {
             cur = new_token_num(cur, strtol(p, &p, 10));
@@ -213,7 +224,7 @@ Token *new_token_num(Token *cur, int val) {
  *  <expr>    ::= <mul> ("+" <mul> | "-" <mul>)*
  *  <mul>     ::= <unary> ("*"|"**"|"^" <unary> | "/" <unary>)*
  *  <unary>   ::= ('+' | '-')? <primary>
- *  <primary> ::= <num> | '(' <expr> ')'
+ *  <primary> ::= <num> '!'? | '(' <expr> ')' '!'?
  *  <num>     ::= "0-9" ("0-9")*
  */
 
@@ -301,8 +312,12 @@ static Node *primary(void) {
         fprintf(stderr, "expected a number\n");
         exit(42);
     }
+
     int val = token->val;
     token = token->next;
+    if (consume('!')) {
+        val = fact(val);
+    }
 
     return new_num(val);
 }

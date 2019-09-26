@@ -43,6 +43,9 @@ assert  64 '2**2**3' # Python 3.7.0 => 256 ???
 assert  64 '2^6'
 assert 128 '2^8-2^7'
 
+assert 120 '5!'
+assert   0 '4!-(4*3*2*1)'
+
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"
 else
