@@ -11,7 +11,10 @@ typedef enum {
     TT_ASTERISK, // '*'
     TT_SLASH,    // '/'
     TT_PERCENT,  // '%'
-    TT_POWER,    // "**", '^'
+    TT_POWER,    // "**"
+    TT_AND,      // '&'
+    TT_OR,       // '|'
+    TT_XOR,      // '^'
     TT_FACT,     // '!' Factorial
 
     TT_ILLEGAL,
@@ -75,7 +78,11 @@ int pow_(int j, int i) {
     return k;
 }
 
-int fact(int val) {
+int factorial(int val) {
+    if (val < 0) {
+        fprintf(stderr, "factorial(): not support minus\n");
+        return 0;
+    }
     int fact = 1;
     for (; val;) fact *= val--;
     return fact;
@@ -173,12 +180,20 @@ Token *tokenize(char *str) {
             cur = new_token(TT_PERCENT, cur, *p++);
             continue;
         }
-        if (*p == '^') {
-            cur = new_token(TT_POWER, cur, *p++);
-            continue;
-        }
         if (*p == '!') {
             cur = new_token(TT_FACT, cur, *p++);
+            continue;
+        }
+        if (*p == '&') {
+            cur = new_token(TT_AND, cur, *p++);
+            continue;
+        }
+        if (*p == '|') {
+            cur = new_token(TT_OR, cur, *p++);
+            continue;
+        }
+        if (*p == '^') {
+            cur = new_token(TT_XOR, cur, *p++);
             continue;
         }
 
@@ -223,8 +238,9 @@ Token *new_token_num(Token *cur, int val) {
 /*
  *  <expr>    ::= <mul> ("+" <mul> | "-" <mul>)*
  *  <mul>     ::= <unary> ("*"|"**"|"^" <unary> | "/" <unary>)*
- *  <unary>   ::= ('+' | '-')? <primary>
- *  <primary> ::= <num> '!'? | '(' <expr> ')' '!'?
+ *  <unary>   ::= ('+' | '-')? <fact>
+ *  <fact>    ::= <primary> '!'?
+ *  <primary> ::= <num> | '(' <expr> ')'
  *  <num>     ::= "0-9" ("0-9")*
  */
 
@@ -250,6 +266,7 @@ static Node *new_num(int val) {
 static Node *expr(void);
 static Node *mul(void);
 static Node *unary(void);
+static Node *fact(void);
 static Node *primary(void);
 
 static Node *expr(void) {
@@ -294,8 +311,16 @@ static Node *unary(void) {
     } else if (consume('-')) {
         return new_binary(TT_MINUS, new_num(0), unary());
     } else {
-        return primary();
+        return fact();
     }
+}
+
+static Node *fact(void) {
+    Node *node = primary();
+    if (consume('!')) {
+        return new_binary(TT_FACT, new_num(0), node);
+    }
+    return node;
 }
 
 static Node *primary(void) {
@@ -310,14 +335,11 @@ static Node *primary(void) {
 
     if (token->type != TT_INT) {
         fprintf(stderr, "expected a number\n");
-        exit(42);
+        exit(1);
     }
 
     int val = token->val;
     token = token->next;
-    if (consume('!')) {
-        val = fact(val);
-    }
 
     return new_num(val);
 }
@@ -331,8 +353,8 @@ void gen(Node *node) {
     gen(node->lhs);
     gen(node->rhs);
 
-    int i = pop();
-    int j = pop();
+    int i = pop(); // Right
+    int j = pop(); // Lift
 
     switch(node->type) {
     case TT_PLUS:
@@ -361,6 +383,9 @@ void gen(Node *node) {
         break;
     case TT_POWER:
         push(pow_(j, i));
+        break;
+    case TT_FACT:
+        push(factorial(i));
         break;
     default:
         break;

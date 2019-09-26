@@ -46,6 +46,10 @@ assert 128 '2^8-2^7'
 assert 120 '5!'
 assert   0 '4!-(4*3*2*1)'
 
+assert   2 '2!!'
+assert   0 '-4!+4!'
+assert  28 '-(1+2)!+34'
+
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"
 else
