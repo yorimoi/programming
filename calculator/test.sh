@@ -18,24 +18,30 @@ function assert() {
     fi
 }
 
-assert  0 '0'
-assert 42 '42'
-assert 21 '5+20-4'
+assert   0 '0'
+assert  42 '42'
+assert  21 '5+20-4'
 
-assert 14 '1*2+3*4'
-assert 10 '4-3*2+12'
-assert 16 '6/3-2+16'
+assert  14 '1*2+3*4'
+assert  10 '4-3*2+12'
+assert  16 '6/3-2+16'
 
-assert 15 '5*(9-6)'
-assert  4 '(3+5)/2'
-assert  1 '((1-2)*3)+4'
+assert  15 '5*(9-6)'
+assert   4 '(3+5)/2'
+assert   1 '((1-2)*3)+4'
 
-assert 10 '-10+20'
-assert 10 '- -10'
-assert 10 '- - +10'
+assert  10 '-10+20'
+assert  10 '- -10'
+assert  10 '- - +10'
 
-assert  7 '7%3+2*3'
-assert 15 '3%7*(2+3)'
+assert   7 '7%3+2*3'
+assert  15 '3%7*(2+3)'
+
+assert   1 '10**0'
+assert  32 '2**5'
+assert  64 '2**2**3' # Python 3.7.0 => 256 ???
+assert  64 '2^6'
+assert 128 '2^8-2^7'
 
 if [ $ERRCNT -eq 0 ]; then
     echo -e "\033[36mSUCCESS\033[0m"

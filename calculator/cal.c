@@ -11,6 +11,7 @@ typedef enum {
     TT_ASTERISK, // '*'
     TT_SLASH,    // '/'
     TT_PERCENT,  // '%'
+    TT_POWER,    // "**", '^'
 
     TT_ILLEGAL,
     TT_EOF,
@@ -62,6 +63,17 @@ int pop() {
 }
 
 
+//
+// math
+//
+
+int pow_(int j, int i) {
+    if (!i--) return 1;
+    int k = j;
+    for (; i; --i) k *= j;
+    return k;
+}
+
 
 //
 // Tokenizer
@@ -95,6 +107,11 @@ Token *tokenize(char *str) {
             continue;
         }
         if (*p == '*') {
+            if (*(p+1) == '*') {
+                cur = new_token(TT_POWER, cur, *p++);
+                cur = new_token(TT_POWER, cur, *p++);
+                continue;
+            }
             cur = new_token(TT_ASTERISK, cur, *p++);
             continue;
         }
@@ -104,6 +121,10 @@ Token *tokenize(char *str) {
         }
         if (*p == '%') {
             cur = new_token(TT_PERCENT, cur, *p++);
+            continue;
+        }
+        if (*p == '^') {
+            cur = new_token(TT_POWER, cur, *p++);
             continue;
         }
 
@@ -146,7 +167,7 @@ Token *new_token_num(Token *cur, int val) {
 
 /*
  *  <expr>    ::= <mul> ("+" <mul> | "-" <mul>)*
- *  <mul>     ::= <unary> ("*" <unary> | "/" <unary>)*
+ *  <mul>     ::= <unary> ("*"|"**"|"^" <unary> | "/" <unary>)*
  *  <unary>   ::= ('+' | '-')? <primary>
  *  <primary> ::= <num> | '(' <expr> ')'
  *  <num>     ::= "0-9" ("0-9")*
@@ -195,11 +216,17 @@ static Node *mul(void) {
 
     for (;;) {
         if (consume('*')) {
-            node = new_binary(TT_ASTERISK, node, unary());
+            if (consume('*')) {
+                node = new_binary(TT_POWER, node, unary());
+            } else {
+                node = new_binary(TT_ASTERISK, node, unary());
+            }
         } else if (consume('/')) {
             node = new_binary(TT_SLASH, node, unary());
         } else if (consume('%')) {
             node = new_binary(TT_PERCENT, node, unary());
+        } else if (consume('^')) {
+            node = new_binary(TT_POWER, node, unary());
         } else {
             return node;
         }
@@ -272,6 +299,9 @@ void gen(Node *node) {
             exit(1);
         }
         push(j % i);
+        break;
+    case TT_POWER:
+        push(pow_(j, i));
         break;
     default:
         break;
