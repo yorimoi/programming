@@ -10,6 +10,7 @@ typedef enum {
     TT_MINUS,    // '-'
     TT_ASTERISK, // '*'
     TT_SLASH,    // '/'
+    TT_PERCENT,  // '%'
 
     TT_ILLEGAL,
     TT_EOF,
@@ -54,7 +55,7 @@ void push(int val) {
 
 int pop() {
     if (sp < 1) {
-        fprintf(stderr, "stack null\n");
+        fprintf(stderr, "stack null");
         exit(1);
     }
     return ary[--sp];
@@ -86,23 +87,23 @@ Token *tokenize(char *str) {
         }
 
         if (*p == '+') {
-            ++p;
-            cur = new_token(TT_PLUS, cur, '+');
+            cur = new_token(TT_PLUS, cur, *p++);
             continue;
         }
         if (*p == '-') {
-            ++p;
-            cur = new_token(TT_MINUS, cur, '-');
+            cur = new_token(TT_MINUS, cur, *p++);
             continue;
         }
         if (*p == '*') {
-            ++p;
-            cur = new_token(TT_ASTERISK, cur, '*');
+            cur = new_token(TT_ASTERISK, cur, *p++);
             continue;
         }
         if (*p == '/') {
-            ++p;
-            cur = new_token(TT_SLASH, cur, '/');
+            cur = new_token(TT_SLASH, cur, *p++);
+            continue;
+        }
+        if (*p == '%') {
+            cur = new_token(TT_PERCENT, cur, *p++);
             continue;
         }
 
@@ -117,8 +118,7 @@ Token *tokenize(char *str) {
             continue;
         }
 
-        fprintf(stderr ,"Non expected: \"%c\"\n", *p);
-        exit(22);
+        fprintf(stderr, "Non expected: \"%c\"\n", *p);
     }
 
     new_token(TT_EOF, cur, 0);
@@ -198,6 +198,8 @@ static Node *mul(void) {
             node = new_binary(TT_ASTERISK, node, unary());
         } else if (consume('/')) {
             node = new_binary(TT_SLASH, node, unary());
+        } else if (consume('%')) {
+            node = new_binary(TT_PERCENT, node, unary());
         } else {
             return node;
         }
@@ -258,7 +260,18 @@ void gen(Node *node) {
         push(j * i);
         break;
     case TT_SLASH:
+        if (i == 0) {
+            fprintf(stderr, "Divide by Zero\n");
+            exit(1);
+        }
         push(j / i);
+        break;
+    case TT_PERCENT:
+        if (i == 0) {
+            fprintf(stderr, "Divide by Zero\n");
+            exit(1);
+        }
+        push(j % i);
         break;
     default:
         break;
