@@ -4,7 +4,7 @@
 
 typedef enum {
     TT_INT,      // Integer
-    TT_BRA,      // '(' ')'
+    TT_BRA,     // '(' ')'
 
     TT_PLUS,     // '+'
     TT_MINUS,    // '-'
@@ -16,6 +16,7 @@ typedef enum {
     TT_OR,       // '|'
     TT_XOR,      // '^'
     TT_FACT,     // '!' Factorial
+    TT_TILDE,    // '~'
 
     TT_ILLEGAL,
     TT_EOF,
@@ -196,6 +197,10 @@ Token *tokenize(char *str) {
             cur = new_token(TT_XOR, cur, *p++);
             continue;
         }
+        if (*p == '~') {
+            cur = new_token(TT_TILDE, cur, *p++);
+            continue;
+        }
 
         if (isdigit(*p)) {
             cur = new_token_num(cur, strtol(p, &p, 10));
@@ -239,7 +244,7 @@ Token *new_token_num(Token *cur, int val) {
  *  <expr>    ::= <add> ("&"|"|"|"^" <add>)*
  *  <add>     ::= <mul> ("+" <mul> | "-" <mul>)*
  *  <mul>     ::= <unary> ("*"|"**"|"/"|"%" <unary>)*
- *  <unary>   ::= ('+' | '-')? <fact>
+ *  <unary>   ::= ('+' | '-' | '~')? <fact>
  *  <fact>    ::= <primary> '!'?
  *  <primary> ::= <num> | '(' <expr> ')'
  *  <num>     ::= "0-9" ("0-9")*
@@ -326,6 +331,8 @@ static Node *unary(void) {
         return unary();
     } else if (consume('-')) {
         return new_binary(TT_MINUS, new_num(0), unary());
+    } else if (consume('~')) {
+        return new_binary(TT_TILDE, new_num(0), unary());
     } else {
         return fact();
     }
@@ -411,6 +418,9 @@ void gen(Node *node) {
         break;
     case TT_XOR:
         push(i^j);
+        break;
+    case TT_TILDE:
+        push(~i);
         break;
     default:
         break;
