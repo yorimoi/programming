@@ -202,9 +202,16 @@ Token *tokenize(char *str) {
             continue;
         }
 
-        if (*p == '0' && *(p+1) == 'x') {
-            cur = new_token_num(cur, strtol(p, &p, 16));
-            continue;
+        if (*p == '0') {
+            if (*(p+1) == 'x') {
+                p += 2;
+                cur = new_token_num(cur, strtol(p, &p, 16));
+                continue;
+            } else if (*(p+1) == 'b') {
+                p += 2;
+                cur = new_token_num(cur, strtol(p, &p, 2));
+                continue;
+            }
         }
         if (isdigit(*p)) {
             cur = new_token_num(cur, strtol(p, &p, 10));
@@ -251,7 +258,7 @@ Token *new_token_num(Token *cur, int val) {
  *  <unary>   ::= ('+' | '-' | '~')? <fact>
  *  <fact>    ::= <primary> '!'?
  *  <primary> ::= <num> | '(' <expr> ')'
- *  <num>     ::= "0-9" ("0-9")*
+ *  <num>     ::= "0-9" ("0-9")* | "0x" (0-9a-f)* | "0b" ("0"|"1")*
  */
 
 static Node *new_node(TokenType type) {
@@ -441,7 +448,8 @@ void help(void) {
     printf("  <unary>   ::= ('+' | '-' | '~')? <fact>\n");
     printf("  <fact>    ::= <primary> '!'?\n");
     printf("  <primary> ::= <num> | '(' <expr> ')'\n");
-    printf("  <num>     ::= \"0-9\" (\"0-9\")*\n\n");
+    printf("  <num>     ::= \"0-9\" (\"0-9\")* | \"0x\" (0-9a-f)* |"
+           "\"0b\" (\"0\"|\"1\")*\n\n");
 }
 
 int main(int argc, char **argv) {
