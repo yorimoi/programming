@@ -4,7 +4,7 @@
 
 typedef enum {
     TT_INT,      // Integer
-    TT_BRA,     // '(' ')'
+    TT_RBRA,     // '(' ')' Round brackets
 
     TT_PLUS,     // '+'
     TT_MINUS,    // '-'
@@ -202,13 +202,17 @@ Token *tokenize(char *str) {
             continue;
         }
 
+        if (*p == '0' && *(p+1) == 'x') {
+            cur = new_token_num(cur, strtol(p, &p, 16));
+            continue;
+        }
         if (isdigit(*p)) {
             cur = new_token_num(cur, strtol(p, &p, 10));
             continue;
         }
 
         if (*p == '(' || *p == ')') {
-            cur = new_token(TT_BRA, cur, *p);
+            cur = new_token(TT_RBRA, cur, *p);
             ++p;
             continue;
         }
@@ -429,6 +433,17 @@ void gen(Node *node) {
     return;
 }
 
+void help(void) {
+    printf("BNF:\n");
+    printf("  <expr>    ::= <add> ('&'|'|'|'^' <add>)*\n");
+    printf("  <add>     ::= <mul> ('+' <mul> | '-' <mul>)*\n");
+    printf("  <mul>     ::= <unary> ('*'|\"**\"|'/'|'%%' <unary>)*\n");
+    printf("  <unary>   ::= ('+' | '-' | '~')? <fact>\n");
+    printf("  <fact>    ::= <primary> '!'?\n");
+    printf("  <primary> ::= <num> | '(' <expr> ')'\n");
+    printf("  <num>     ::= \"0-9\" (\"0-9\")*\n\n");
+}
+
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Invalid arguments\n");
@@ -438,7 +453,8 @@ int main(int argc, char **argv) {
     if (!strcmp_(argv[1], "repl")) {
         char input[128];
         printf("Wellcome to my calculator REPL!\n");
-        printf("Type `quit` to exit\n\n");
+        printf("Type `help` for more information.\n");
+        printf("Type `quit` to exit.\n\n");
         while (1) {
             printf(">> ");
             fgets(input, 127, stdin);
@@ -447,6 +463,9 @@ int main(int argc, char **argv) {
             }
             if (!strncmp_(input, "quit", 4)) {
                 return 0;
+            } else if (!strncmp_(input, "help", 4)) {
+                help();
+                continue;
             }
             token = tokenize(input);
             if (token) {
