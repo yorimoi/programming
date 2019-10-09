@@ -1,0 +1,177 @@
+/// TODO
+/// random
+/// time <- ???
+/// move
+/// collision
+/// ratation
+/// delete line
+/// loop
+
+const std = @import("std");
+const Size = enum(u8) {
+    H = 21,
+    W = 12,
+};
+
+var minoX: u8 = 4;
+var minoY: u8 = 0;
+var minoShape = [4][4]u8 {
+    [4]u8 {0,0,0,0},
+    [4]u8 {0,0,0,0},
+    [4]u8 {0,0,0,0},
+    [4]u8 {0,0,0,0},
+};
+
+var field = [@enumToInt(Size.H)][@enumToInt(Size.W)]u8 {
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,0,0,0,0,0,0,0,0,0,0,1},
+    [@enumToInt(Size.W)]u8 {1,1,1,1,1,1,1,1,1,1,1,1},
+};
+//var field = [H][W]u8 {0} ** H*W;
+var fieldBuf = [@enumToInt(Size.H)][@enumToInt(Size.W)]u8 {
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+    [@enumToInt(Size.W)]u8 {0,0,0,0,0,0,0,0,0,0,0,0},
+}; // ** @enumToInt(Size.H);
+
+fn draw() void {
+
+    for (fieldBuf) | *array, y | {
+        for (array) | *elem, x | {
+            elem.* = field[y][x];
+        }
+    }
+
+    var y: u8 = 0;
+    var x: u8 = 0;
+
+    y = 0;
+    while (y < 4) : ({y += 1; x = 0;}) {
+        while (x < 4) : (x += 1) {
+            fieldBuf[y+minoY][x+minoX] |= minoShape[y][x];
+        }
+    }
+
+    y = 0;
+    while (y < @enumToInt(Size.H)) : (y += 1) {
+        x = 0;
+        while (x < @enumToInt(Size.W)) : (x += 1) {
+            if (fieldBuf[y][x] == 1) {
+                //stdout.write("[]");
+                //std.io.write("[]");
+                std.debug.warn("[]");
+            } else {
+                //try stdout.write(" .");
+                std.debug.warn(" .");
+            }
+        }
+        //try stdout.write("\n");
+        std.debug.warn("\n");
+    }
+}
+
+// static
+const minos = [7][4][4]u1 {
+    // I
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {0,0,0,0},
+        [4]u1 {1,1,1,1},
+        [4]u1 {0,0,0,0},
+    },
+    // O
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {0,1,1,0},
+        [4]u1 {0,1,1,0},
+        [4]u1 {0,0,0,0},
+    },
+    // S
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {0,1,1,0},
+        [4]u1 {1,1,0,0},
+        [4]u1 {0,0,0,0},
+    },
+    // Z
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {1,1,0,0},
+        [4]u1 {0,1,1,0},
+        [4]u1 {0,0,0,0},
+    },
+    // J
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {1,0,0,0},
+        [4]u1 {1,1,1,0},
+        [4]u1 {0,0,0,0},
+    },
+    // L
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {0,0,1,0},
+        [4]u1 {1,1,1,0},
+        [4]u1 {0,0,0,0},
+    },
+    // T
+    [4]u1 {
+        [4]u1 {0,0,0,0},
+        [4]u1 {0,1,0,0},
+        [4]u1 {1,1,1,0},
+        [4]u1 {0,0,0,0},
+    },
+};
+
+var minoIdx: u8 = 0;
+fn init() void {
+    minoX = 4;
+    minoY = 0;
+    minoIdx = (minoIdx+1)%7; // TODO random
+    for (minoShape) | *array, y | {
+        for (array) | *elem, x | {
+            elem.* = minos[minoIdx][y][x];
+        }
+    }
+}
+
+pub fn main() anyerror!void {
+    init();
+    draw();
+}
