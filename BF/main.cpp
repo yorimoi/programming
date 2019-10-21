@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <stack>
 #include <list>
-#include <string>
 
 using namespace std;
 
@@ -14,32 +13,20 @@ int main(int argc, char **argv) {
 
     constexpr int DT_SIZE = 3000;
     list<uint8_t> d(DT_SIZE, 0);
-    string o = argv[1];
+    char *o = argv[1];
 
     list<uint8_t>::iterator dp = d.begin();
-    string::iterator op = o.begin();
-    stack<string::iterator> l, r;
-    while(*op) {
+    stack<char*> l, r;
+    for(char *op=o; *op; op++) {
         switch(*op) {
             case '+': (*dp)++; break;
             case '-': (*dp)--; break;
             case '>': dp++; break;
             case '<': dp--; break;
-            case '[': l.push(op);
-                      if(*dp == 0) {
-                          op = r.top();
-                          r.pop();
-                      }
-                      break;
-            case ']': r.push(op);
-                      if(*dp != 0) {
-                          op = l.top() - 1;
-                          l.pop();
-                      }
-                      break;
+            case '[': l.push(op); if(*dp==0){ op=r.top();   r.pop();} break;
+            case ']': r.push(op); if(*dp!=0){ op=l.top()-1; l.pop();} break;
             case '.': printf("%c", *dp);  break;
             case ',': *dp = fgetc(stdin); break;
         }
-        op++;
     }
 }

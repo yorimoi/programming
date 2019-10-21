@@ -1,1 +1,0 @@
-{"rustc":11779505878581416876,"features":"[]","target":2225072716237276445,"profile":6117072952031459232,"path":1036222786711178230,"deps":[["termios v0.3.1","termios",1541438237854430314]],"local":[{"MtimeBased":[[1551702737,364317900],".fingerprint/lg-45e49b6b2352921e/dep-test-bin-lg-45e49b6b2352921e"]}],"rustflags":[],"edition":"Edition2015"}

@@ -1,0 +1,46 @@
+generation: 0002
+score: 0001740
+blcok_total: 0000148
+elite: { 83, 52, 78, 85, 58 }
+
+generation: 0001
+score: 0001840
+blcok_total: 0000154
+elite: { 91, 39,  6, 61, 22 }
+
+generation: 0022
+score: 0001920
+blcok_total: 0000156
+elite: { 57,  3, 74, 98, 53 }
+
+generation: 0006
+score: 0003120
+blcok_total: 0000231
+elite: { 53, 21, 53, 90, 75 }
+
+// 上の突然変異
+// 両サイドに深い溝ができた.
+generation: 0004
+score: 0077640
+blcok_total: 0003823
+elite: { 33, 21, 53, 90, 75 }
+
+generation: 0039
+score: 0037960
+blcok_total: 0001300
+elite: { 13, 31, 86, 49, 82 }
+
+generation: 0042
+score: 0035340
+blcok_total: 0001957
+elite: { 20, 62, 37, 62, 61 }
+
+generation: 0002
+score: 0053560
+blcok_total: 0001782
+elite: { 75, 56, 83, 11, 41 }
+
+generation: 0004
+score: 0047580
+blcok_total: 0002472
+elite: { 31, 13, 56, 79, 15 }

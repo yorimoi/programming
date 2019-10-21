@@ -1,0 +1,603 @@
+2019/04/13 00:14:49
+generation: 100
+max_line_total: 0001443
+elite_of_elite: {-139,  17, -63, 172,-176}
+
+2019/04/13 07:38:08
+generation: 200
+max_line_total: 0001402
+elite_of_elite: { -52,  26,-105, 142,-157}
+
+2019/04/13 11:04:51
+generation: 100
+max_line_total: 0002153
+elite_of_elite: {-228,  18,-208, 235,-242}
+
+2019/04/13 11:56:12
+generation: 100
+max_line_total: 0000918
+elite_of_elite: { -70,   7, -75,  86, -16}
+
+2019/04/13 12:47:11
+generation: 100
+max_line_total: 0001144
+elite_of_elite: { -38, -65,  58, -88}
+
+2019/04/13 13:38:55
+generation: 100
+max_line_total: 0002202
+elite_of_elite: { -41, -47,  17, -55}
+
+2019/04/13 19:44:05
+generation: 100
+max_line_total: 0000104
+elite_of_elite: { -55, -87,   2,  23, -20}
+
+2019/04/13 20:23:56
+generation: 100
+max_line_total: 0000103
+elite_of_elite: { -32, -90, -33, -21, -25}
+
+2019/04/13 20:43:15
+generation: 100
+max_line_total: 0000103
+elite_of_line: { -62, -40,  53, -98, -11}
+max_score: 0011840
+elite_of_score: { -31, -94, -28, -14, -20}
+
+2019/04/13 21:07:43
+generation: 100
+max_line_total: 0000044 / 40
+elite_of_line: {  14, -40,  -3, -50,  -9}
+max_score: 0004720
+elite_of_score: { -81, -63,  20, -30,   4}
+
+2019/04/13 21:51:24
+generation: 100
+max_line_total: 0001002 / 1000
+elite_of_line: { -98, -92,  78, -44, -20}
+max_score: 0063920
+elite_of_score: { -17, -70,   4, -26, -10}
+
+2019/04/13 21:53:17
+generation: 100
+max_line_total: 0001003 / 1000
+elite_of_line: { -46, -96,  24,  15, -11}
+max_score: 0073660
+elite_of_score: { -52, -79, -11, -14, -12}
+
+2019/04/13 21:53:40
+generation: 100
+max_line_total: 0001003 / 1000
+elite_of_line: { -18, -96,  46, -72,  -7}
+max_score: 0070520
+elite_of_score: {  -8, -91,  44, -26,  -1}
+
+2019/04/13 22:44:39
+generation: 100
+max_line_total: 0000389 / 1000
+elite_of_line: { -44, -77,  71, -79, -11}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/13 22:50:25
+FIELD_SIZE: 10x8
+generation: 100
+max_line_total: 0001063 / 1000
+elite_of_line: { -19, -65,  60, -58, -24}
+max_score: 0045400
+elite_of_score: { -19, -65,  60, -58, -24}
+
+2019/04/13 23:33:43
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 1000
+max_line_total: 0000974 / 1000
+elite_of_line: {  -2, -53,  51, -78, -16}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/13 23:34:23
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 1000
+max_line_total: 0001290 / 1000
+elite_of_line: {  -6, -78,  78, -45, -16}
+max_score: 0057660
+elite_of_score: {  -6, -78,  78, -45, -16}
+
+2019/04/13 23:36:02
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 1000
+max_line_total: 0001485 / 1000
+elite_of_line: { -42, -99,  98,   8, -22}
+max_score: 0065160
+elite_of_score: { -42, -99,  98,   8, -22}
+
+2019/04/14 01:12:57
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1000
+max_line_total: 0010093 / 1000
+elite_of_line: { -15, -67,  76, -11, -14}
+max_score: 0451320
+elite_of_score: { -15, -67,  76, -11, -14}
+
+2019/04/14 01:15:45
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1000
+max_line_total: 0008318 / 1000
+elite_of_line: {  11, -87,  66, -88, -23}
+max_score: 0367100
+elite_of_score: {  11, -87,  66, -88, -23}
+
+2019/04/14 01:20:00
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1000
+max_line_total: 0013142 / 1000
+elite_of_line: {  11, -84,  76, -87, -21}
+max_score: 0579640
+elite_of_score: {  11, -84,  76, -87, -21}
+
+2019/04/14 08:55:50
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1000
+max_line_total: 0000609 / 1000
+elite_of_line: { -26, -60,  65, -51, -18}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 08:56:21
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1000
+max_line_total: 0000637 / 1000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 08:56:35
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1000
+max_line_total: 0000481 / 1000
+elite_of_line: {  -9, -26,  88, -51,  -5}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 13:18:54
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 100
+max_line_total: 0000055 / 1000000
+elite_of_line: {  35,  30,  83,  81,  13}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 13:28:36
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 100
+max_line_total: 0000041 / 1000000
+elite_of_line: {  15,  77,  62,  67,   5}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 14:38:09
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 10000
+max_line_total: 0000609 / 1000
+elite_of_line: { -92,-197, 249,   1, -45}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 14:40:47
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 10000
+max_line_total: 0000823 / 1000
+elite_of_line: {-162,-244, 195, -86, -44}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 14:44:13
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 10000
+max_line_total: 0000560 / 1000
+elite_of_line: { -41,-198, 141, -52, -45}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/14 19:22:14
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:23:46
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:24:55
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:26:48
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:27:58
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:30:07
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000101 / 100
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0004200
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/14 19:43:51
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0000000 / 1000000
+elite_of_line: {   0,   0,   0,   0,   0}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 07:52:34
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1
+max_line_total: 0000008 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 07:52:41
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1
+max_line_total: 0000030 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 07:52:50
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1
+max_line_total: 0000037 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 07:53:40
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 1
+max_line_total: 0000307 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 08:43:12
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 100
+max_line_total: 0000195 / 1000000
+elite_of_line: {  13, -25,  66, -27, -17}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 08:58:09
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0054119 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/04/15 09:01:59
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0013436 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0568860
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 09:11:14
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0000002 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000080
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 09:54:02
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 7
+generation: 1
+max_line_total: 0000059 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0002660
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 09:54:16
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 1
+max_line_total: 0000031 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0001300
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 10:17:57
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0086659 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 3689400
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 10:21:40
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 8
+generation: 100
+max_line_total: 0001047 / 1000000
+elite_of_line: {  -6, -39,  33,   1,  -8}
+max_score: 0044440
+elite_of_score: {  -6, -39,  33,   1,  -8}
+
+2019/04/15 17:47:34
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0175822 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 8400180
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 17:54:26
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0000720 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0031280
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 17:56:08
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0000128 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0007060
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 17:56:31
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0000076 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0003140
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/04/15 18:00:51
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 10
+generation: 1
+max_line_total: 0000092 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0005060
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:27:56
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000004 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000160
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:37:06
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0001212 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0055340
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:48:08
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0003404 / 1000000
+elite_of_line: {  -8, -55,  14, -69, -50}
+max_score: 0171960
+elite_of_score: {  -8, -55,  14, -69, -50}
+
+2019/09/26 23:49:09
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000428 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0024680
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:51:25
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000571 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0027480
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:52:30
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000002 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0000080
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:54:41
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000712 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0034640
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:55:49
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000961 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0048600
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/26 23:58:55
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000455 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0020440
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:00:05
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000806 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0037400
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:01:03
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000717 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0036940
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:03:24
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000597 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0029260
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:05:07
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000270 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0012100
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:09:39
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0005526 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0269560
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:10:22
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000213 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0010160
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 00:10:42
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000000 / 1000000
+elite_of_line: {   0,   0,   0,   0,   0}
+max_score: 0000000
+elite_of_score: {   0,   0,   0,   0,   0}
+
+2019/09/27 00:11:41
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000798 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0038320
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 18:38:31
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0000308 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0015300
+elite_of_score: {  -5, -91,  90, -10, -29}
+
+2019/09/27 19:22:03
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 1
+max_line_total: 0017584 / 1000000
+elite_of_line: {  15, -94,  53,  32, -52}
+max_score: 0838320
+elite_of_score: {  15, -94,  53,  32, -52}
+

@@ -139,8 +139,7 @@ int MINO_TYPE[MINO_TYPE_MAX][MINO_ANGLE_MAX][MINO_SIZE] =
 int field[FIELD_HEIGHT][FIELD_WIDTH];
 int field_buffer[FIELD_HEIGHT][FIELD_WIDTH];
 
-int mino_x, mino_y, mino_type;
-unsigned int mino_angle;
+int mino_x, mino_y, mino_type, mino_angle;
 int mino_stack1[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
 int mino_stack2[MINO_TYPE_MAX] = {0,1,2,3,4,5,6};
 int mino_stack_cnt = -1;
@@ -303,6 +302,7 @@ int main()
             if(!cd(mino_x, mino_y+1, mino_angle)) mino_y++;
             else break;
           }
+          t = 0;
           break;
         case 'l': if(!cd(mino_x+1, mino_y, mino_angle)) mino_x++; break;
         case 'q': quit();  break;
@@ -311,8 +311,8 @@ int main()
             mino_angle = (mino_angle + 1) % MINO_ANGLE_MAX;
           break;
         case 'b':
-          if(!cd(mino_x, mino_y, (mino_angle - 1) % MINO_ANGLE_MAX))
-            mino_angle = (mino_angle - 1) % MINO_ANGLE_MAX;
+          if(!cd(mino_x, mino_y, (MINO_ANGLE_MAX+mino_angle-1)%MINO_ANGLE_MAX))
+            mino_angle = (MINO_ANGLE_MAX + mino_angle - 1) % MINO_ANGLE_MAX;
           break;
       }
       display();

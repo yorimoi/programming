@@ -217,8 +217,9 @@ int is_perfect() {
 }
 
 void draw_perfect() {
-    char perfect[] = "Perfect!!";
-    for(int i=0; i<9; i++) {
+    //char perfect[] = "Perfect!!";
+    char perfect[] = "ALLCLEAR";
+    for(int i=0; i<sizeof perfect; i++) {
         printf("\033[8;%dH\033[0m%c", F_WIDTH*2+3+i, perfect[i]);
         Sleep(20);
     }

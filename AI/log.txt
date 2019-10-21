@@ -1,0 +1,9 @@
+2019/10/11 09:14:48
+FIELD_WIDTH: 10
+FIELD_HEIGHT: 20
+generation: 0
+max_line_total: 0003980 / 1000000
+elite_of_line: {  -5, -91,  90, -10, -29}
+max_score: 0184740
+elite_of_score: {  -5, -91,  90, -10, -29}
+

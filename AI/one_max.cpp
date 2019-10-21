@@ -50,9 +50,9 @@ public:
 };
 
 
-/** 
+/**
  * @brief      引数で指定された桁のランダムな遺伝子情報を生成
- * 
+ *
  * @param[in]  遺伝子情報の長さ
  * @return     生成したインスタンス
  */
@@ -68,7 +68,7 @@ genom create_genom(int length) {
 /**
  * @brief      評価関数
  *             0.00 ~ 1.00 で評価
- * 
+ *
  * @param[in]  評価を行うgenomClass
  * @return     評価値
  */
@@ -82,7 +82,7 @@ double evaluation(genom& ga) {
 
 /**
  * @brief      選択関数
- * 
+ *
  * @param[in]  エリートを格納するgenomClass,
  * @param[in]  評価元のgenomClass,
  * @param[in]  選択するエリート数
@@ -101,7 +101,7 @@ void select(std::vector<genom>& elite, std::vector<genom>& ga, int elite_len) {
 
 /**
  * @brief      交叉関数 => 二点交叉
- * 
+ *
  * @param[in]  交叉結果を格納するgenomClass,
  * @param[in]  一つ目の個体,
  * @param[in]  二つ目の個体
@@ -139,7 +139,7 @@ void crossover(std::vector<genom>& genom_list,
 
 /**
  * @brief      世代交代処理
- * 
+ *
  * @param[in]  次世代集団
  * @param[in]  現世代集団
  * @param[in]  エリート集団
@@ -167,7 +167,7 @@ void next_generation_gene_create(std::vector<genom>& next_gen_group,
 
 /**
  * @brief  突然変異関数
- * 
+ *
  * @param[in]  次世代集団
  * @param[in]  個体突然変異確率
  * @param[in]  遺伝子突然変異確率
@@ -223,7 +223,7 @@ int main(void) {
         std::vector<double> fits;
         for(auto i: current_gen_group)
             fits.push_back(i.get_evaluation());
-        
+
         // 進化結果を評価
         double min = *std::min_element(fits.begin(), fits.end());
         double max = *std::max_element(fits.begin(), fits.end());

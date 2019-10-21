@@ -369,7 +369,7 @@ static Node *primary(void) {
 
     if (token->type != TT_INT) {
         fprintf(stderr, "expected a number\n");
-        exit(1);
+        return NULL;
     }
 
     int val = token->val;
@@ -478,8 +478,10 @@ int main(int argc, char **argv) {
             token = tokenize(input);
             if (token) {
                 Node *node = expr();
-                gen(node);
-                printf("%d\n", pop());
+                if (node) {
+                    gen(node);
+                    printf("%d\n", pop());
+                }
             }
         }
     } else {

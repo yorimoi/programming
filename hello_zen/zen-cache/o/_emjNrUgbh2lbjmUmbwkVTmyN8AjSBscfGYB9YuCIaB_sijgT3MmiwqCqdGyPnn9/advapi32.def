@@ -1,0 +1,4 @@
+LIBRARY advapi32
+EXPORTS
+SystemFunction036
+
