@@ -1,7 +1,0 @@
-[package]
-name = "chapter_2"
-version = "0.1.0"
-authors = ["salieri"]
-edition = "2018"
-
-[dependencies]
