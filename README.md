@@ -5,8 +5,6 @@
 
 ## Screenshots
 
-![insertion](https://github.com/yorimoi/programming/blob/master/ScreenShot/insertion.gif)  
-
 ![mario](https://github.com/yorimoi/programming/blob/master/ScreenShot/mario.png)  
 
 ![tetrisGA](https://github.com/yorimoi/programming/blob/master/ScreenShot/tetrisGA.gif)  

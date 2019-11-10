@@ -1,8 +1,0 @@
-[package]
-name = "keyboard_Rust"
-version = "0.1.0"
-authors = ["salieri"]
-edition = "2018"
-
-[dependencies]
-device_query = "0.1.0"
