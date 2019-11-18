@@ -17,10 +17,10 @@ pub fn run() {
         }
 
         let mut l = lexer::Lexer::new(&input);
-        let mut tok = lexer::tokenize(&mut l);
+        let tok = lexer::tokenize(&mut l);
         //println!("{:?}", tok);
 
-        let ast = ast::eval(&mut tok);
+        let ast = ast::eval(&tok);
         let mut vec: Vec<i64> = Vec::new();
         parser::gen(&ast, &mut vec);
 

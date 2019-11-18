@@ -1,5 +1,5 @@
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
     PLUS,      // +
     MINUS,     // -
@@ -14,7 +14,7 @@ pub enum TokenKind {
     EOF,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub kind: TokenKind,
     pub cur: usize,
