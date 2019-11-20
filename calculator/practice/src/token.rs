@@ -7,7 +7,7 @@ pub enum TokenKind {
     SLASH,     // /
     LPAREN,    // (
     RPAREN,    // )
-    NUM(u64),  // [0-9][0-9]*
+    NUM(f64),  // [0-9][0-9]*.[0-9][0-9]*
     //LITERAL(String),
 
     ILLEGAL(String),

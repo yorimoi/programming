@@ -58,7 +58,19 @@ impl Lexer {
                     num = num * 10 + char2num(&self.peek_char());
                     self.read_char();
                 }
-                new_token(TokenKind::NUM(num), self.read_position)
+                if self.peek_char() == Some('.') {
+                    self.read_char();
+                    let integer = num.to_string();
+                    let mut fractional = String::new();
+                    while is_digit(&self.peek_char()) {
+                        fractional += &char2num(&self.peek_char()).to_string();
+                        self.read_char();
+                    }
+                    let num: f64 = format!("{}.{}", integer, fractional).parse().unwrap();
+                    new_token(TokenKind::NUM(num), self.read_position)
+                } else {
+                    new_token(TokenKind::NUM(num as f64), self.read_position)
+                }
             } else {
                 //eprintln!("{}^", " ".repeat(self.read_position + 1));
                 //panic!("expected Num(u64), but got {}", &self.ch.unwrap());

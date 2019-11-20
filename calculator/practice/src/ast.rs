@@ -13,7 +13,7 @@ pub enum AstKind {
     SUB,      // -
     MUL,      // *
     DIV,      // /
-    NUM(i64), // [0-9][0-9]*
+    NUM(f64), // [0-9][0-9]*.[0-9][0-9]*
 }
 
 #[derive(Debug, PartialEq)]
@@ -77,7 +77,7 @@ fn unary(mut tok: &mut Tokens) -> Option<Box<Ast>> {
         return primary(&mut tok);
     }
     if consume(TokenKind::MINUS, &mut tok) {
-        return new_node(AstKind::SUB, new_node(AstKind::NUM(0), None, None), primary(&mut tok));
+        return new_node(AstKind::SUB, new_node(AstKind::NUM(0.0), None, None), primary(&mut tok));
     }
     return primary(&mut tok);
 }
@@ -89,7 +89,11 @@ fn primary(mut tok: &mut Tokens) -> Option<Box<Ast>> {
         return node;
     }
 
-    new_node(AstKind::NUM(tok.expect_number()), None, None)
+    match tok.token[tok.idx].kind {
+        TokenKind::NUM(_) =>
+            new_node(AstKind::NUM(tok.expect_number()), None, None),
+        _ => None,
+    }
 }
 
 fn consume(kind: TokenKind, tok: &mut Tokens) -> bool {
@@ -111,15 +115,15 @@ impl Tokens {
         }
     }
 
-    fn expect_number(&mut self) -> i64 {
+    fn expect_number(&mut self) -> f64 {
         match self.token[self.idx].kind {
             TokenKind::NUM(num) => {
                 self.idx += 1;
-                num as i64
+                num as f64
             },
             _ => {
                 eprintln!("{}^", " ".repeat(self.token[self.idx].cur));
-                panic!("expected NUM(u64). but got {:?}", self.token[self.idx].kind);
+                panic!("expected NUM(f64). but got {:?}", self.token[self.idx].kind);
             },
         }
     }

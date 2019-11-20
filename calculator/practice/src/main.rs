@@ -31,7 +31,7 @@ fn main() {
             println!("> {}", line);
 
             let ast = ast::eval(&mut tok);
-            let mut vec: Vec<i64> = Vec::new();
+            let mut vec: Vec<f64> = Vec::new();
             parser::gen(&ast, &mut vec);
 
             let output = vec.pop().unwrap();
@@ -54,6 +54,8 @@ fn test_main() {
     ng_count += assert(4,  "(3+5)/2");
     ng_count += assert(-3, "5-(1-3)-10");
     ng_count += assert(3,  "-1-(-4)");
+    ng_count += assert(7,  "4.2+2.8");
+    ng_count += assert(10, "0.001+9.999");
 
     if ng_count == 0 {
         println!("\x1b[36mSUCCESS\x1b[0m");
@@ -67,10 +69,11 @@ fn test_main() {
 fn assert(expected: i32, args: &str) -> i32 {
     let mut l = lexer::Lexer::new(&args);
     let mut tok = lexer::tokenize(&mut l);
+    //println!("{:?}", tok);
 
     let ast = ast::eval(&mut tok);
 
-    let mut vec: Vec<i64> = Vec::new();
+    let mut vec: Vec<f64> = Vec::new();
     parser::gen(&ast, &mut vec);
 
     let actual = vec.pop().unwrap() as i32;

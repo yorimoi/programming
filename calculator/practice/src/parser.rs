@@ -1,6 +1,6 @@
 use super::ast::*;
 
-pub fn gen(node: &Option<Box<Ast>>, mut vec: &mut Vec<i64>) {
+pub fn gen(node: &Option<Box<Ast>>, mut vec: &mut Vec<f64>) {
     match node.as_ref().unwrap().kind {
         AstKind::NUM(num) => {
             vec.push(num);
@@ -20,7 +20,7 @@ pub fn gen(node: &Option<Box<Ast>>, mut vec: &mut Vec<i64>) {
         AstKind::SUB => vec.push(j-i),
         AstKind::MUL => vec.push(j*i),
         AstKind::DIV => {
-            if i == 0 {
+            if i == 0.0 {
                 panic!("Divide by Zero");
             }
             vec.push(j/i);

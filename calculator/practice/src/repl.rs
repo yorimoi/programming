@@ -21,7 +21,8 @@ pub fn run() {
         //println!("{:?}", tok);
 
         let ast = ast::eval(&tok);
-        let mut vec: Vec<i64> = Vec::new();
+
+        let mut vec: Vec<f64> = Vec::new();
         parser::gen(&ast, &mut vec);
 
         let output = vec.pop().unwrap();
