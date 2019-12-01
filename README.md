@@ -5,8 +5,8 @@
 
 ## Screenshots
 
-![mario](https://github.com/yorimoi/programming/blob/master/ScreenShot/mario.png)  
+![mario](https://github.com/kumavale/programming/blob/master/ScreenShot/mario.png)  
 
-![tetrisGA](https://github.com/yorimoi/programming/blob/master/ScreenShot/tetrisGA.gif)  
+![tetrisGA](https://github.com/kumavale/programming/blob/master/ScreenShot/tetrisGA.gif)  
 
-[see more](https://github.com/yorimoi/programming/wiki/Screenshots)  
+[see more](https://github.com/kumavale/programming/wiki/Screenshots)  
