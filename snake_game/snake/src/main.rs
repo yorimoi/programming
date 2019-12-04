@@ -12,12 +12,12 @@ use self::Direction::*;
 use std::slice::Iter;
 
 
-const AUTO: bool = true;     // Auto play
-const UPS: u64 = 60;         // Update per seconds
+const AUTO: bool = true;      // Auto play
+const UPS: u64 = 600;         // Update per seconds
 
-const W: usize = 16 + 2;     // Field width  + Wall
-const H: usize = 16 + 2;     // Field height + Wall
-const SNAKE_MIN: usize = 3;  // Minimum snake length
+const W: usize = 16 + 2 + 2;  // Field width  + Wall + Sentinel
+const H: usize = 16 + 2 + 2;  // Field height + Wall + Sentinel
+const SNAKE_MIN: usize = 3;   // Minimum snake length
 
 /// (x, y)
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -46,7 +46,7 @@ impl Distribution<Direction> for Standard {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Kind {
     None,
     Snake,
@@ -90,8 +90,8 @@ fn draw(field: &[[Kind; H]; W], snake: &Vec<Snake>) {
 
 fn spawn_feed(field: &mut [[Kind; H]; W], snake: &Vec<Snake>) {
     'outer: loop {
-        let y = rand::thread_rng().gen_range(1, H-2);
-        let x = rand::thread_rng().gen_range(1, W-2);
+        let y = rand::thread_rng().gen_range(2, H-3);
+        let x = rand::thread_rng().gen_range(2, W-3);
 
         for s in snake.iter() {
             if s.y == y && s.x == x {
@@ -127,28 +127,49 @@ fn collision_snake(snake: &Vec<Snake>, pos_x: usize, pos_y: usize) -> bool {
     false
 }
 
-fn dead_end_snake(field: &[[Kind; H]; W], snake: &Vec<Snake>, pos: &(usize, usize)) -> bool {
-    //let mut field_buf = field.clone();
-    //let mut snake_buf = snake.clone();
+fn get_move_cell_count(mut field_checked: &mut [[bool; H]; W], field: &[[Kind; H]; W],
+pos: &(usize, usize), mut cnt: usize) -> usize {
 
-    //let mut i = snake_buf.len() - 1;
-    //while i > 0 {
-    //    snake_buf[i] = snake_buf[i-1];
-    //    i -= 1;
-    //}
-    //snake_buf[0].x = pos.0;
-    //snake_buf[0].y = pos.1;
+    static DIRECTIONS: [(isize, isize); 4] = [
+        // x,  y
+        (  0, -1),  // Up
+        (  1,  0),  // Right
+        (  0,  1),  // Down
+        ( -1,  0),  // Left
+    ];
 
-    //for s in snake_buf.iter() {
-    //    field_buf[s.y][s.x] = Kind::Snake;
-    //}
+    if pos.0 == 0 || W-1 <= pos.0 || pos.1 == 0 || H-1 <= pos.1
+        || field_checked[pos.1][pos.0] || field[pos.1][pos.0] == Kind::Wall
+    {
+            return cnt;
+    }
 
-    false
+    cnt += 1;
+    field_checked[pos.1][pos.0] = true;
+
+    for dir in 0..4 {
+        let x = (pos.0 as isize + DIRECTIONS[dir].0) as usize;
+        let y = (pos.1 as isize + DIRECTIONS[dir].1) as usize;
+        cnt = get_move_cell_count(&mut field_checked, &field, &(x, y), cnt);
+    }
+
+    cnt
+}
+
+fn is_dead_end_snake(field: &[[Kind; H]; W], snake: &Vec<Snake>, pos: &(usize, usize)) -> bool {
+    let mut field_checked = [[false; H]; W];
+    let mut field_buf = field.clone();
+
+    for s in snake.iter() {
+        field_buf[s.y][s.x] = Kind::Wall;
+    }
+
+    snake.len() > get_move_cell_count(&mut field_checked, &field_buf, &pos, 0)
 }
 
 fn get_feed_pos(field: &[[Kind; H]; W]) -> Option<(usize, usize)> {
-    for y in 1..H-1 {
-        for x in 1..W-1 {
+    for y in 2..H-2 {
+        for x in 2..W-2 {
             if field[y][x] == Kind::Feed {
                 return Some((x, y));
             }
@@ -171,7 +192,8 @@ fn get_to_feed_distance(field: &[[Kind; H]; W], s_pos: &(usize, usize))
 fn eval(field: &[[Kind; H]; W], snake: &Vec<Snake>, dir: &Direction)
 -> Direction {
     let mut ret = Direction::Right;
-    let mut max_feed_distance = H as i32 * W as i32;
+    let mut min_feed_distance = H as i32 * W as i32;
+    let dead_end_padding = H as i32 + W as i32;
 
     for d in Direction::iter() {
         match d {
@@ -189,17 +211,28 @@ fn eval(field: &[[Kind; H]; W], snake: &Vec<Snake>, dir: &Direction)
             Direction::Left  => (snake[0].x - 1, snake[0].y    ),
         };
 
-        let feed_distance = get_to_feed_distance(&field, &s_pos);
-        let is_collision  = collision_snake(&snake, s_pos.0, s_pos.1);
-        let is_dead_end   = dead_end_snake(&field, &snake, &s_pos);
+        let feed_distance       = get_to_feed_distance(&field, &s_pos);
+        let is_snake_collision  = collision_snake(&snake, s_pos.0, s_pos.1);
+        let is_head_collision   = field[s_pos.1][s_pos.0] == Kind::Wall;
+        let is_dead_end         = is_dead_end_snake(&field, &snake, &s_pos);
 
-        if is_collision || is_dead_end {
+        if is_snake_collision || is_head_collision {
             continue;
         }
 
-        if feed_distance < max_feed_distance {
-            max_feed_distance = feed_distance;
-            ret = *d;
+        if is_dead_end {
+            if feed_distance + dead_end_padding <= min_feed_distance {
+                //printw("is_dead_end: true\n");
+                //printw(&format!("feed_distance: {}\n", feed_distance));
+                //getch();
+                min_feed_distance = feed_distance + dead_end_padding;
+                ret = *d;
+            }
+        } else {
+            if feed_distance <= min_feed_distance {
+                min_feed_distance = feed_distance;
+                ret = *d;
+            }
         }
     }
     ret
@@ -210,24 +243,24 @@ fn main() {
     noecho();
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);  // Not action...
 
+    let wait_msec: u64 = 1000 / UPS;
+
     let mut gameover = false;
     let mut field = [[Kind::None; H]; W];
-    let mut snake = Vec::with_capacity((H-2)*(W-2));
+    let mut snake = Vec::with_capacity((H-4)*(W-4));
     let mut dir: Direction = rand::random();
-
-    let wait_msec: u64 = 1000 / UPS;
 
     for _ in 0..SNAKE_MIN {
         snake.push(Snake { x: W/2, y: H/2 });
     }
 
-    for y in 0..H {
-        field[y][0]   = Kind::Wall;
-        field[y][W-1] = Kind::Wall;
+    for y in 1..H-1 {
+        field[y][1]   = Kind::Wall;
+        field[y][W-2] = Kind::Wall;
     }
-    for x in 0..W {
-        field[0][x]   = Kind::Wall;
-        field[H-1][x] = Kind::Wall;
+    for x in 1..W-1 {
+        field[1][x]   = Kind::Wall;
+        field[H-2][x] = Kind::Wall;
     }
 
     spawn_feed(&mut field, &snake);
