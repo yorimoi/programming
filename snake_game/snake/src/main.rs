@@ -15,8 +15,8 @@ use std::slice::Iter;
 const AUTO: bool = true;      // Auto play
 const UPS: u64 = 600;         // Update per seconds
 
-const W: usize = 16 + 2 + 2;  // Field width  + Wall + Sentinel
-const H: usize = 16 + 2 + 2;  // Field height + Wall + Sentinel
+const W: usize = 40 + 2 + 2;  // Field width  + Wall + Sentinel
+const H: usize = 20 + 2 + 2;  // Field height + Wall + Sentinel
 const SNAKE_MIN: usize = 3;   // Minimum snake length
 
 /// (x, y)
@@ -61,7 +61,7 @@ struct Snake {
     y: usize,
 }
 
-fn draw(field: &[[Kind; H]; W], snake: &Vec<Snake>) {
+fn draw(field: &[[Kind; W]; H], snake: &Vec<Snake>) {
     let mut field_buf = field.clone();
 
     let mut snake_iter = snake.iter();
@@ -88,7 +88,7 @@ fn draw(field: &[[Kind; H]; W], snake: &Vec<Snake>) {
     refresh();
 }
 
-fn spawn_feed(field: &mut [[Kind; H]; W], snake: &Vec<Snake>) {
+fn spawn_feed(field: &mut [[Kind; W]; H], snake: &Vec<Snake>) {
     'outer: loop {
         let y = rand::thread_rng().gen_range(2, H-3);
         let x = rand::thread_rng().gen_range(2, W-3);
@@ -127,7 +127,7 @@ fn collision_snake(snake: &Vec<Snake>, pos_x: usize, pos_y: usize) -> bool {
     false
 }
 
-fn get_move_cell_count(mut field_checked: &mut [[bool; H]; W], field: &[[Kind; H]; W],
+fn get_move_cell_count(mut field_checked: &mut [[bool; W]; H], field: &[[Kind; W]; H],
 pos: &(usize, usize), mut cnt: usize) -> usize {
 
     static DIRECTIONS: [(isize, isize); 4] = [
@@ -156,8 +156,8 @@ pos: &(usize, usize), mut cnt: usize) -> usize {
     cnt
 }
 
-fn is_dead_end_snake(field: &[[Kind; H]; W], snake: &Vec<Snake>, pos: &(usize, usize)) -> bool {
-    let mut field_checked = [[false; H]; W];
+fn is_dead_end_snake(field: &[[Kind; W]; H], snake: &Vec<Snake>, pos: &(usize, usize)) -> bool {
+    let mut field_checked = [[false; W]; H];
     let mut field_buf = field.clone();
 
     for s in snake.iter() {
@@ -167,7 +167,7 @@ fn is_dead_end_snake(field: &[[Kind; H]; W], snake: &Vec<Snake>, pos: &(usize, u
     snake.len() > get_move_cell_count(&mut field_checked, &field_buf, &pos, 0)
 }
 
-fn get_feed_pos(field: &[[Kind; H]; W]) -> Option<(usize, usize)> {
+fn get_feed_pos(field: &[[Kind; W]; H]) -> Option<(usize, usize)> {
     for y in 2..H-2 {
         for x in 2..W-2 {
             if field[y][x] == Kind::Feed {
@@ -178,7 +178,7 @@ fn get_feed_pos(field: &[[Kind; H]; W]) -> Option<(usize, usize)> {
     None
 }
 
-fn get_to_feed_distance(field: &[[Kind; H]; W], s_pos: &(usize, usize))
+fn get_to_feed_distance(field: &[[Kind; W]; H], s_pos: &(usize, usize))
 -> i32 {
     if let Some(f_pos) = get_feed_pos(&field) {
         (s_pos.0 as i32 - f_pos.0 as i32).abs()
@@ -189,7 +189,7 @@ fn get_to_feed_distance(field: &[[Kind; H]; W], s_pos: &(usize, usize))
     }
 }
 
-fn eval(field: &[[Kind; H]; W], snake: &Vec<Snake>, dir: &Direction)
+fn eval(field: &[[Kind; W]; H], snake: &Vec<Snake>, dir: &Direction)
 -> Direction {
     let mut ret = Direction::Right;
     let mut min_feed_distance = H as i32 * W as i32;
@@ -220,19 +220,15 @@ fn eval(field: &[[Kind; H]; W], snake: &Vec<Snake>, dir: &Direction)
             continue;
         }
 
-        if is_dead_end {
-            if feed_distance + dead_end_padding <= min_feed_distance {
-                //printw("is_dead_end: true\n");
-                //printw(&format!("feed_distance: {}\n", feed_distance));
-                //getch();
-                min_feed_distance = feed_distance + dead_end_padding;
-                ret = *d;
-            }
-        } else {
-            if feed_distance <= min_feed_distance {
-                min_feed_distance = feed_distance;
-                ret = *d;
-            }
+        if is_dead_end && feed_distance + dead_end_padding <= min_feed_distance {
+            //printw("is_dead_end: true\n");
+            //printw(&format!("feed_distance: {}\n", feed_distance));
+            //getch();
+            min_feed_distance = feed_distance + dead_end_padding;
+            ret = *d;
+        } else if !is_dead_end && feed_distance <= min_feed_distance {
+            min_feed_distance = feed_distance;
+            ret = *d;
         }
     }
     ret
@@ -246,7 +242,7 @@ fn main() {
     let wait_msec: u64 = 1000 / UPS;
 
     let mut gameover = false;
-    let mut field = [[Kind::None; H]; W];
+    let mut field = [[Kind::None; W]; H];
     let mut snake = Vec::with_capacity((H-4)*(W-4));
     let mut dir: Direction = rand::random();
 
