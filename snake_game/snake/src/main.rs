@@ -49,7 +49,7 @@ impl Distribution<Direction> for Standard {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Kind {
     None,
-    Snake,
+    Snake(usize),
     Head,
     Wall,
     Feed,
@@ -68,19 +68,23 @@ fn draw(field: &[[Kind; W]; H], snake: &Vec<Snake>) {
     if let Some(s) = snake_iter.next() {
         field_buf[s.y][s.x] = Kind::Head;
     }
-    for s in snake_iter {
-        field_buf[s.y][s.x] = Kind::Snake;
+    for (i, s) in snake_iter.enumerate() {
+        field_buf[s.y][s.x] = Kind::Snake(i);
     }
 
     clear();
     for y in 0..H {
         for x in 0..W {
             match field_buf[y][x] {
-                Kind::None  => printw("  "),
-                Kind::Snake => printw("()"),
-                Kind::Head  => printw("^^"),
-                Kind::Wall  => printw("[]"),
-                Kind::Feed  => printw("<>"),
+                Kind::None     => { printw("  "); },
+                Kind::Snake(i) => {
+                    attron(COLOR_PAIR(((i%24)/4+1) as i16));
+                    printw("()");
+                    attroff(COLOR_PAIR(((i%24)/4+1) as i16));
+                },
+                Kind::Head     => { printw("^^"); },
+                Kind::Wall     => { printw("[]"); },
+                Kind::Feed     => { printw("<>"); },
             };
         }
         printw("\n");
@@ -127,8 +131,8 @@ fn collision_snake(snake: &Vec<Snake>, pos_x: usize, pos_y: usize) -> bool {
     false
 }
 
-fn get_move_cell_count(mut field_checked: &mut [[bool; W]; H], field: &[[Kind; W]; H],
-pos: &(usize, usize), mut cnt: usize) -> usize {
+fn get_move_cell_count_rec(mut field_checked: &mut [[bool; W]; H], field: &[[Kind; W]; H],
+pos: &(usize, usize), len: usize, mut cnt: usize) -> usize {
 
     static DIRECTIONS: [(isize, isize); 4] = [
         // x,  y
@@ -140,6 +144,7 @@ pos: &(usize, usize), mut cnt: usize) -> usize {
 
     if pos.0 == 0 || W-1 <= pos.0 || pos.1 == 0 || H-1 <= pos.1
         || field_checked[pos.1][pos.0] || field[pos.1][pos.0] == Kind::Wall
+        || cnt >= len
     {
             return cnt;
     }
@@ -150,13 +155,13 @@ pos: &(usize, usize), mut cnt: usize) -> usize {
     for dir in 0..4 {
         let x = (pos.0 as isize + DIRECTIONS[dir].0) as usize;
         let y = (pos.1 as isize + DIRECTIONS[dir].1) as usize;
-        cnt = get_move_cell_count(&mut field_checked, &field, &(x, y), cnt);
+        cnt = get_move_cell_count_rec(&mut field_checked, &field, &(x, y), len, cnt);
     }
 
     cnt
 }
 
-fn is_dead_end_snake(field: &[[Kind; W]; H], snake: &Vec<Snake>, pos: &(usize, usize)) -> bool {
+fn get_move_cell_count(field: &[[Kind; W]; H], snake: &Vec<Snake>, pos: &(usize, usize)) -> usize {
     let mut field_checked = [[false; W]; H];
     let mut field_buf = field.clone();
 
@@ -164,7 +169,7 @@ fn is_dead_end_snake(field: &[[Kind; W]; H], snake: &Vec<Snake>, pos: &(usize, u
         field_buf[s.y][s.x] = Kind::Wall;
     }
 
-    snake.len() > get_move_cell_count(&mut field_checked, &field_buf, &pos, 0)
+    get_move_cell_count_rec(&mut field_checked, &field_buf, &pos, snake.len(), 0)
 }
 
 fn get_feed_pos(field: &[[Kind; W]; H]) -> Option<(usize, usize)> {
@@ -185,15 +190,16 @@ fn get_to_feed_distance(field: &[[Kind; W]; H], s_pos: &(usize, usize))
             + (s_pos.1 as i32 - f_pos.1 as i32).abs()
     } else {
         eprintln!("error: get_feed_pos(): can't get pos");
-        0
+        (H + W) as i32
     }
 }
 
 fn eval(field: &[[Kind; W]; H], snake: &Vec<Snake>, dir: &Direction)
 -> Direction {
     let mut ret = Direction::Right;
-    let mut min_feed_distance = H as i32 * W as i32;
-    let dead_end_padding = H as i32 + W as i32;
+    let mut min_feed_distance = H as i32 * W as i32 * 2;
+    //let mut max_can_move_cell_cnt = 0;
+    let dead_end_padding = H as i32 * W as i32;
 
     for d in Direction::iter() {
         match d {
@@ -211,26 +217,39 @@ fn eval(field: &[[Kind; W]; H], snake: &Vec<Snake>, dir: &Direction)
             Direction::Left  => (snake[0].x - 1, snake[0].y    ),
         };
 
-        let feed_distance       = get_to_feed_distance(&field, &s_pos);
-        let is_snake_collision  = collision_snake(&snake, s_pos.0, s_pos.1);
-        let is_head_collision   = field[s_pos.1][s_pos.0] == Kind::Wall;
-        let is_dead_end         = is_dead_end_snake(&field, &snake, &s_pos);
+        let is_snake_collision = collision_snake(&snake, s_pos.0, s_pos.1);
+        let is_head_collision  = field[s_pos.1][s_pos.0] == Kind::Wall;
 
         if is_snake_collision || is_head_collision {
             continue;
         }
 
-        if is_dead_end && feed_distance + dead_end_padding <= min_feed_distance {
-            //printw("is_dead_end: true\n");
-            //printw(&format!("feed_distance: {}\n", feed_distance));
-            //getch();
-            min_feed_distance = feed_distance + dead_end_padding;
-            ret = *d;
-        } else if !is_dead_end && feed_distance <= min_feed_distance {
+        let feed_distance     = get_to_feed_distance(&field, &s_pos);
+        let can_move_cell_cnt = get_move_cell_count(&field, &snake, &s_pos) as i32;
+        let is_dead_end       = can_move_cell_cnt < snake.len() as i32;
+
+        if is_dead_end {
+            if feed_distance + dead_end_padding <= min_feed_distance {
+                min_feed_distance = feed_distance + dead_end_padding;
+                ret = *d;
+            }
+        } else if feed_distance <= min_feed_distance {
             min_feed_distance = feed_distance;
             ret = *d;
         }
+        //if is_dead_end {
+        //    if can_move_cell_cnt >= max_can_move_cell_cnt
+        //    && feed_distance + dead_end_padding <= min_feed_distance {
+        //        max_can_move_cell_cnt = can_move_cell_cnt;
+        //        min_feed_distance = feed_distance + dead_end_padding;
+        //        ret = *d;
+        //    }
+        //} else if feed_distance <= min_feed_distance {
+        //    min_feed_distance = feed_distance;
+        //    ret = *d;
+        //}
     }
+
     ret
 }
 
@@ -239,7 +258,24 @@ fn main() {
     noecho();
     curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);  // Not action...
 
-    let wait_msec: u64 = 1000 / UPS;
+    start_color();
+    init_pair(1, COLOR_RED,     0);
+    init_pair(2, COLOR_BLUE,    0);
+    init_pair(3, COLOR_GREEN,   0);
+    init_pair(4, COLOR_YELLOW,  0);
+    init_pair(5, COLOR_CYAN,    0);
+    init_pair(6, COLOR_MAGENTA, 0);
+
+    let args: Vec<String> = std::env::args().collect();
+    let wait_msec: u64 = if args.len() == 3 {
+        if args[1] == "--ups" {
+            1000 / args[2].parse::<u64>().unwrap()
+        } else {
+            panic!("Invalid argument");
+        }
+    } else {
+        1000 / UPS
+    };
 
     let mut gameover = false;
     let mut field = [[Kind::None; W]; H];
@@ -308,7 +344,7 @@ fn main() {
             Kind::Feed => {
                 growth_snake(&mut snake);
                 move_snake(&mut snake, pos_x, pos_y);
-                if snake.len() < (H-2)*(W-2) {
+                if snake.len() < (H-4)*(W-4) {
                     field[pos_y][pos_x] = Kind::None;
                     spawn_feed(&mut field, &snake);
                 } else {
@@ -337,6 +373,8 @@ fn main() {
 
     if gameover {
         printw("GAME OVER\n");
+        printw(&format!("Snake length: {} / {}\n", snake.len(), (H-4)*(W-4)));
+        printw(&format!("Last direction: {:?}\n", dir));
         printw("Press enter key...");
         while getch() as u8 != b'\n' {}
     }
