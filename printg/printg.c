@@ -13,6 +13,8 @@ typedef struct {
 void size_check(String* str);
 void toint(String* str, int num);
 void touint(String* str, unsigned int num);
+void tochar(String* str, char ch);
+void tostr(String* str, char* ch);
 
 int vprintg(int fd, const char* fmt, va_list ap) {
     char *c = (char *) fmt;
@@ -32,6 +34,14 @@ int vprintg(int fd, const char* fmt, va_list ap) {
                     break;
                 case 'u':
                     touint(&str, va_arg(ap, unsigned int));
+                    c += 2;
+                    break;
+                case 'c':
+                    tochar(&str, va_arg(ap, int));
+                    c += 2;
+                    break;
+                case 's':
+                    tostr(&str, va_arg(ap, char*));
                     c += 2;
                     break;
 
@@ -137,6 +147,23 @@ void touint(String* str, unsigned int num) {
     while (0 < buf_cur--) {
         size_check(str);
         str->str[(str->cur)++] = buf[buf_cur];
+    }
+
+    return;
+}
+
+void tochar(String* str, char ch) {
+    size_check(str);
+    str->str[(str->cur)++] = ch;
+
+    return;
+}
+
+void tostr(String* str, char* ch) {
+    while (*ch) {
+        size_check(str);
+        str->str[(str->cur)++] = *ch;
+        ++ch;
     }
 
     return;

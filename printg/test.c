@@ -25,8 +25,25 @@ int main(void) {
     printg("[%d]\n", 42);
     printg("[%d]\n", 'A');
     printg("[%d]\n", -1);
+    printg("[%d+%d=%d]\n", -1, -2, -3);
+
+    fprintg(2, "> Unsigned integer\n");
     printg("[%u]\n", 0);
     printg("[%u]\n", -1);
+    printg("[%u+%u=%u]\n", 1, 2, 3);
+
+    fprintg(2, "> Char\n");
+    printg("[%c]\n", 'a');
+    printg("[%c]\n", 'A');
+    printg("[%c]\n", '0');
+    printg("[%c]\n", '*');
+    printg("[%c]\n", 65);
+    printg("[%c%c%c%c%c]\n", 'A', 'B', 'C', 'D', 'E', 'F');
+
+    fprintg(2, "> String\n");
+    printg("[%s]\n", "string");
+    printg("[%sRED\033[0m]\n", "\033[31m");
+    printg("[%s, %s]\n", "Hello", "World!");
 
     return 0;
 }
