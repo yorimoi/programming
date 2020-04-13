@@ -11,14 +11,22 @@ void assert(int expect, int actual) {
 }
 
 int main(void) {
-    printg("=== test ===\n");
+    fprintg(2, "> Stdout\n");
+    fprintg(1, "[stdout]\n");
 
-    fprintg(1, "stdout\n");
-    fprintg(2, "errout\n");
+    fprintg(2, "> Errout\n");
+    fprintg(2, "[errout]\n");
 
-    printg("long long long long long string\n");
-    printg("42 => %d\n", 42);
-    printg("65 => %d\n", 'A');
+    fprintg(2, "> Over 8 character string\n");
+    printg("[long long long long long string]\n");
+
+    fprintg(2, "> Integer\n");
+    printg("[%d]\n", 0);
+    printg("[%d]\n", 42);
+    printg("[%d]\n", 'A');
+    printg("[%d]\n", -1);
+    printg("[%u]\n", 0);
+    printg("[%u]\n", -1);
 
     return 0;
 }
