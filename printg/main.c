@@ -1,8 +1,7 @@
 #include "printg.h"
 
 int main(void) {
-
-    fprintg(0, "main");
+    printg("=== main ===\n");
 
     return 0;
 }
