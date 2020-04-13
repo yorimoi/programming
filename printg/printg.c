@@ -11,10 +11,11 @@ typedef struct {
 } String;
 
 void size_check(String* str);
-void toint(String* str, int num);
-void touint(String* str, unsigned int num);
-void tochar(String* str, char ch);
-void tostr(String* str, char* ch);
+void i2a(String* str, int num);
+void ui2a(String* str, unsigned int num);
+void c2a(String* str, char ch);
+void s2a(String* str, char* ch);
+void f2a(String* str, double num);
 
 int vprintg(int fd, const char* fmt, va_list ap) {
     char *c = (char *) fmt;
@@ -29,19 +30,23 @@ int vprintg(int fd, const char* fmt, va_list ap) {
         if (*c == '%') {
             switch (c[1]) {
                 case 'd':
-                    toint(&str, va_arg(ap, int));
+                    i2a(&str, va_arg(ap, int));
                     c += 2;
                     break;
                 case 'u':
-                    touint(&str, va_arg(ap, unsigned int));
+                    ui2a(&str, va_arg(ap, unsigned int));
                     c += 2;
                     break;
                 case 'c':
-                    tochar(&str, va_arg(ap, int));
+                    c2a(&str, va_arg(ap, int));
                     c += 2;
                     break;
                 case 's':
-                    tostr(&str, va_arg(ap, char*));
+                    s2a(&str, va_arg(ap, char*));
+                    c += 2;
+                    break;
+                case 'f':
+                    f2a(&str, va_arg(ap, double));
                     c += 2;
                     break;
 
@@ -96,7 +101,7 @@ void size_check(String *str) {
     }
 }
 
-void toint(String* str, int num) {
+void i2a(String* str, int num) {
     if (num == 0) {
         size_check(str);
         str->str[(str->cur)++] = '0';
@@ -129,7 +134,7 @@ void toint(String* str, int num) {
     return;
 }
 
-void touint(String* str, unsigned int num) {
+void ui2a(String* str, unsigned int num) {
     if (num == 0) {
         size_check(str);
         str->str[(str->cur)++] = '0';
@@ -152,18 +157,52 @@ void touint(String* str, unsigned int num) {
     return;
 }
 
-void tochar(String* str, char ch) {
+void c2a(String* str, char ch) {
     size_check(str);
     str->str[(str->cur)++] = ch;
 
     return;
 }
 
-void tostr(String* str, char* ch) {
+void s2a(String* str, char* ch) {
     while (*ch) {
         size_check(str);
         str->str[(str->cur)++] = *ch;
         ++ch;
+    }
+
+    return;
+}
+
+void f2a(String* str, double num) {
+    int whole  = (int)num;
+    double tmp = (num - whole) * 1000000;
+    unsigned long frac = (unsigned long)tmp;
+    double diff = tmp - frac;
+    char buf[8];
+
+    i2a(str, whole);
+    c2a(str, '.');
+
+    if (0.5 < diff) {
+        ++frac;
+        if (1000000 <= frac) {
+            frac = 0;
+            ++whole;
+        }
+    } else if (diff < 0.5) {
+        // Do nothing
+    } else if ((frac == 0U) || (frac & 1U)) {
+        ++frac;
+    }
+
+    for (int i = 0; i < 6; ++i) {
+        buf[i] = frac % 10 + '0';
+        frac /= 10;
+    }
+    for (int i = 5; 0 <= i; --i) {
+        size_check(str);
+        str->str[(str->cur)++] = buf[i];
     }
 
     return;

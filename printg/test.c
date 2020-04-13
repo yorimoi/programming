@@ -45,6 +45,11 @@ int main(void) {
     printg("[%sRED\033[0m]\n", "\033[31m");
     printg("[%s, %s]\n", "Hello", "World!");
 
+    fprintg(2, "> Float\n");
+    printg("[%f]\n", 123.456f);
+    printg("[%f]\n", 0.00001f);
+    printg("[%f.%f]\n", 192.168f, 1.255f);
+
     return 0;
 }
 
