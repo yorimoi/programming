@@ -4,15 +4,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void size_check(char* str, int* str_size, int* cur);
-void toint(char* str, int* str_size, int* cur, int num);
+typedef struct {
+    char* str;
+    int size;
+    int cur;
+} String;
+
+void size_check(String* str);
+void toint(String* str, int num);
 
 int vprintg(int fd, const char* fmt, va_list ap) {
-    int cur = 0, str_size = 8;
     char *c = (char *) fmt;
-    char *str = (char *) malloc(str_size * sizeof(char));
+    String str = { NULL, 8, 0 };
+    str.str = (char *) malloc(str.size * sizeof(char));
 
-    if (str == NULL) {
+    if (str.str == NULL) {
         exit(1);
     }
 
@@ -20,24 +26,24 @@ int vprintg(int fd, const char* fmt, va_list ap) {
         if (*c == '%') {
             switch (c[1]) {
                 case 'd':
-                    toint(str, &str_size, &cur, va_arg(ap, int));
+                    toint(&str, va_arg(ap, int));
                     c += 2;
                     break;
 
                 default: break;
             }
         } else {
-            size_check(str, &str_size, &cur);
-            str[cur++] = *c++;
+            size_check(&str);
+            str.str[str.cur++] = *c++;
         }
     }
 
-    str[cur] = '\0';
-    write(fd, str, cur);
+    str.str[str.cur] = '\0';
+    write(fd, str.str, str.cur);
 
-    free(str);
+    free(str.str);
 
-    return cur;
+    return str.cur;
 }
 
 int fprintg(int fd, const char* fmt, ...) {
@@ -62,23 +68,23 @@ int printg(const char* fmt, ...) {
     return len;
 }
 
-void size_check(char* str, int* str_size, int* cur) {
-    if (*str_size <= (*cur)+1) {
-        char *str_new = realloc(str, *str_size * 2 * sizeof(char));
+void size_check(String *str) {
+    if (str->size <= (str->cur)+1) {
+        char *str_new = realloc(str->str, str->size * 2 * sizeof(char));
         if (str_new == NULL) {
-            free(str);
+            free(str->str);
             exit(1);
         }
 
-        str = str_new;
-        *str_size *= 2;
+        str->str = str_new;
+        str->size *= 2;
     }
 }
 
-void toint(char* str, int* str_size, int* cur, int num) {
+void toint(String* str, int num) {
     if (num == 0) {
-        size_check(str, str_size, cur);
-        str[(*cur)++] = '0';
+        size_check(str);
+        str->str[(str->cur)++] = '0';
         return;
     }
 
@@ -90,8 +96,8 @@ void toint(char* str, int* str_size, int* cur, int num) {
         num /= 10;
     }
     while (0 < buf_cur--) {
-        size_check(str, str_size, cur);
-        str[(*cur)++] = buf[buf_cur];
+        size_check(str);
+        str->str[(str->cur)++] = buf[buf_cur];
     }
 
     return;
