@@ -50,6 +50,13 @@ int main(void) {
     printg("[%f]\n", 0.00001f);
     printg("[%f.%f]\n", 192.168f, 1.255f);
 
+    fprintg(2, "> Percent\n");
+    printg("[%%]\n");
+    printg("[%%%c%%]\n", '%');
+
+    fprintg(2, "> No support\n");
+    printg("[%V%I%M]\n");
+
     return 0;
 }
 

@@ -49,8 +49,16 @@ int vprintg(int fd, const char* fmt, va_list ap) {
                     f2a(&str, va_arg(ap, double));
                     c += 2;
                     break;
+                case '%':
+                    c2a(&str, '%');
+                    c += 2;
+                    break;
 
-                default: break;
+                default:
+                    c2a(&str, '%');
+                    c2a(&str, c[1]);
+                    c += 2;
+                    break;
             }
         } else {
             size_check(&str);
