@@ -133,18 +133,6 @@ void size_check(String *str) {
 }
 
 void i2a(String* str, int num, int length) {
-    if (num == 0) {
-        if (length) {
-            for (int i = 0; i < length-1; ++i) {
-                size_check(str);
-                str->str[(str->cur)++] = ' ';
-            }
-        }
-        size_check(str);
-        str->str[(str->cur)++] = '0';
-        return;
-    }
-
     char buf[10];
     int buf_cur = 0;
     int is_minus = 0;
@@ -155,10 +143,13 @@ void i2a(String* str, int num, int length) {
         --length;
     }
 
-    while (num != 0) {
+    while (1) {
         buf[buf_cur++] = num % 10 + '0';
         num /= 10;
         --length;
+        if (num == 0) {
+            break;
+        }
     }
 
     for (int i = 0; i < length; ++i) {
@@ -179,25 +170,16 @@ void i2a(String* str, int num, int length) {
 }
 
 void ui2a(String* str, unsigned int num, int length) {
-    if (num == 0) {
-        if (length) {
-            for (int i = 0; i < length-1; ++i) {
-                size_check(str);
-                str->str[(str->cur)++] = ' ';
-            }
-        }
-        size_check(str);
-        str->str[(str->cur)++] = '0';
-        return;
-    }
-
     char buf[10];
     int buf_cur = 0;
 
-    while (num != 0) {
+    while (1) {
         buf[buf_cur++] = num % 10 + '0';
         num /= 10;
         --length;
+        if (num == 0) {
+            break;
+        }
     }
 
     for (int i = 0; i < length; ++i) {
@@ -282,25 +264,16 @@ void f2a(String* str, double num, int length) {
 }
 
 void x2a(String* str, unsigned int num, int length, HexFlags hf) {
-    if (num == 0) {
-        if (length) {
-            for (int i = 0; i < length-1; ++i) {
-                size_check(str);
-                str->str[(str->cur)++] = ' ';
-            }
-        }
-        size_check(str);
-        str->str[(str->cur)++] = '0';
-        return;
-    }
-
     char buf[10];
     int buf_cur = 0;
 
-    while (num != 0) {
+    while (1) {
         buf[buf_cur++] = num % 16;
         num /= 16;
         --length;
+        if (num == 0) {
+            break;
+        }
     }
 
     for (int i = 0; i < length; ++i) {
@@ -343,5 +316,39 @@ int numlen(int num) {
     }
 
     return len;
+}
+
+
+// tests
+void assert(int expect, int actual) {
+    if (expect == actual) {
+        printg("[ \033[32mOK\033[0m ]\n");
+    } else {
+        printg("[ \033[31mNG\033[0m ]  expect %d, but got %d\n", expect, actual);
+    }
+}
+
+void is_num_test() {
+    printg("> is_num_test()\n");
+    assert(1, is_num('0'));
+    assert(1, is_num('9'));
+    assert(0, is_num('a'));
+    assert(0, is_num('/'));
+    assert(0, is_num(':'));
+}
+
+void numlen_test() {
+    printg("> numlen_test()\n");
+    assert(1, numlen(0));
+    assert(1, numlen(1));
+    assert(1, numlen(9));
+    assert(2, numlen(10));
+    assert(2, numlen(-1));
+    assert(3, numlen(100));
+}
+
+void function_tests() {
+    is_num_test();
+    numlen_test();
 }
 
