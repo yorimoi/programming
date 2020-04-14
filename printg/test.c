@@ -57,6 +57,15 @@ int main(void) {
     fprintg(2, "> No support\n");
     printg("[%V%I%M]\n");
 
+    fprintg(2, "> Fill space\n");
+    printg("[%0d]\n", 123);
+    printg("[%10d]\n", 123);
+    printg("[%6u]\n", -1);
+    printg("[%4c]\n", 'A');
+    printg("[%10s]\n", "aiueo");
+    printg("[%10f]\n", 3.14);
+    printg("[%3B]\n");
+
     return 0;
 }
 

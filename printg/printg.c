@@ -11,13 +11,16 @@ typedef struct {
 } String;
 
 void size_check(String* str);
-void i2a(String* str, int num);
-void ui2a(String* str, unsigned int num);
-void c2a(String* str, char ch);
-void s2a(String* str, char* ch);
-void f2a(String* str, double num);
+void i2a(String* str, int num, int length);
+void ui2a(String* str, unsigned int num, int length);
+void c2a(String* str, char ch, int length);
+void s2a(String* str, char* ch, int length);
+void f2a(String* str, double num, int length);
+int is_num(char ch);
+int numlen(int num);
 
 int vprintg(int fd, const char* fmt, va_list ap) {
+    int length = 0;
     char *c = (char *) fmt;
     String str = { NULL, 8, 0 };
     str.str = (char *) malloc(str.size * sizeof(char));
@@ -28,35 +31,41 @@ int vprintg(int fd, const char* fmt, va_list ap) {
 
     while (*c != '\0') {
         if (*c == '%') {
+            while (is_num(c[1])) {
+                length = length * 10 + c[1] - '0';
+                ++c;
+            }
+
             switch (c[1]) {
                 case 'd':
-                    i2a(&str, va_arg(ap, int));
+                    i2a(&str, va_arg(ap, int), length);
                     c += 2;
                     break;
                 case 'u':
-                    ui2a(&str, va_arg(ap, unsigned int));
+                    ui2a(&str, va_arg(ap, unsigned int), length);
                     c += 2;
                     break;
                 case 'c':
-                    c2a(&str, va_arg(ap, int));
+                    c2a(&str, va_arg(ap, int), length);
                     c += 2;
                     break;
                 case 's':
-                    s2a(&str, va_arg(ap, char*));
+                    s2a(&str, va_arg(ap, char*), length);
                     c += 2;
                     break;
                 case 'f':
-                    f2a(&str, va_arg(ap, double));
+                    f2a(&str, va_arg(ap, double), length);
                     c += 2;
                     break;
                 case '%':
-                    c2a(&str, '%');
+                    c2a(&str, '%', 1);
                     c += 2;
                     break;
 
                 default:
-                    c2a(&str, '%');
-                    c2a(&str, c[1]);
+                    c2a(&str, '%', 1);
+                    i2a(&str, length, 0);
+                    c2a(&str, c[1], 1);
                     c += 2;
                     break;
             }
@@ -109,8 +118,14 @@ void size_check(String *str) {
     }
 }
 
-void i2a(String* str, int num) {
+void i2a(String* str, int num, int length) {
     if (num == 0) {
+        if (length) {
+            for (int i = 0; i < length-1; ++i) {
+                size_check(str);
+                str->str[(str->cur)++] = ' ';
+            }
+        }
         size_check(str);
         str->str[(str->cur)++] = '0';
         return;
@@ -123,11 +138,18 @@ void i2a(String* str, int num) {
     if (num < 0) {
         is_minus = 1;
         num = -num;
+        --length;
     }
 
     while (num != 0) {
         buf[buf_cur++] = num % 10 + '0';
         num /= 10;
+        --length;
+    }
+
+    for (int i = 0; i < length; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
     }
 
     if (is_minus) {
@@ -142,8 +164,14 @@ void i2a(String* str, int num) {
     return;
 }
 
-void ui2a(String* str, unsigned int num) {
+void ui2a(String* str, unsigned int num, int length) {
     if (num == 0) {
+        if (length) {
+            for (int i = 0; i < length-1; ++i) {
+                size_check(str);
+                str->str[(str->cur)++] = ' ';
+            }
+        }
         size_check(str);
         str->str[(str->cur)++] = '0';
         return;
@@ -155,6 +183,12 @@ void ui2a(String* str, unsigned int num) {
     while (num != 0) {
         buf[buf_cur++] = num % 10 + '0';
         num /= 10;
+        --length;
+    }
+
+    for (int i = 0; i < length; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
     }
 
     while (0 < buf_cur--) {
@@ -165,14 +199,26 @@ void ui2a(String* str, unsigned int num) {
     return;
 }
 
-void c2a(String* str, char ch) {
+void c2a(String* str, char ch, int length) {
+    for (int i = 0; i < length-1; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
+    }
     size_check(str);
     str->str[(str->cur)++] = ch;
 
     return;
 }
 
-void s2a(String* str, char* ch) {
+void s2a(String* str, char* ch, int length) {
+    char *c = ch;
+    while (*c++) {
+        --length;
+    }
+    for (int i = 0; i < length; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
+    }
     while (*ch) {
         size_check(str);
         str->str[(str->cur)++] = *ch;
@@ -182,15 +228,20 @@ void s2a(String* str, char* ch) {
     return;
 }
 
-void f2a(String* str, double num) {
+void f2a(String* str, double num, int length) {
     int whole  = (int)num;
     double tmp = (num - whole) * 1000000;
     unsigned long frac = (unsigned long)tmp;
     double diff = tmp - frac;
     char buf[8];
 
-    i2a(str, whole);
-    c2a(str, '.');
+    for (int i = numlen(whole)+1+6; i < length; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
+    }
+
+    i2a(str, whole, 0);
+    c2a(str, '.', 1);
 
     if (0.5 < diff) {
         ++frac;
@@ -214,5 +265,28 @@ void f2a(String* str, double num) {
     }
 
     return;
+}
+
+int is_num(char ch) {
+    return '0' <= ch && ch <= '9';
+}
+
+int numlen(int num) {
+    int len = 1;
+
+    if (num == 0) {
+        return 1;
+    }
+
+    if (num < 0) {
+        ++len;
+        num = -num;
+    }
+
+    while (num /= 10) {
+        ++len;
+    }
+
+    return len;
 }
 
