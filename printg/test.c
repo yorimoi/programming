@@ -66,6 +66,12 @@ int main(void) {
     printg("[%10f]\n", 3.14);
     printg("[%3B]\n");
 
+    fprintg(2, "> Hexadecimal\n");
+    printg("0x%x\n", 255);
+    printg("0x%X\n", 11259375);
+    printg("%x\n", -42);
+    printg("%x%x%x\n", '0', '1', '2');
+
     return 0;
 }
 

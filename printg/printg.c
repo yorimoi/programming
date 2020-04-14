@@ -4,6 +4,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+typedef enum {
+    HEX_SMALL,
+    HEX_LARGE,
+} HexFlags;
+
 typedef struct {
     char* str;
     int size;
@@ -16,6 +21,7 @@ void ui2a(String* str, unsigned int num, int length);
 void c2a(String* str, char ch, int length);
 void s2a(String* str, char* ch, int length);
 void f2a(String* str, double num, int length);
+void x2a(String* str, unsigned int num, int length, HexFlags hf);
 int is_num(char ch);
 int numlen(int num);
 
@@ -43,6 +49,14 @@ int vprintg(int fd, const char* fmt, va_list ap) {
                     break;
                 case 'u':
                     ui2a(&str, va_arg(ap, unsigned int), length);
+                    c += 2;
+                    break;
+                case 'x':
+                    x2a(&str, va_arg(ap, unsigned int), length, HEX_SMALL);
+                    c += 2;
+                    break;
+                case 'X':
+                    x2a(&str, va_arg(ap, unsigned int), length, HEX_LARGE);
                     c += 2;
                     break;
                 case 'c':
@@ -262,6 +276,47 @@ void f2a(String* str, double num, int length) {
     for (int i = 5; 0 <= i; --i) {
         size_check(str);
         str->str[(str->cur)++] = buf[i];
+    }
+
+    return;
+}
+
+void x2a(String* str, unsigned int num, int length, HexFlags hf) {
+    if (num == 0) {
+        if (length) {
+            for (int i = 0; i < length-1; ++i) {
+                size_check(str);
+                str->str[(str->cur)++] = ' ';
+            }
+        }
+        size_check(str);
+        str->str[(str->cur)++] = '0';
+        return;
+    }
+
+    char buf[10];
+    int buf_cur = 0;
+
+    while (num != 0) {
+        buf[buf_cur++] = num % 16;
+        num /= 16;
+        --length;
+    }
+
+    for (int i = 0; i < length; ++i) {
+        size_check(str);
+        str->str[(str->cur)++] = ' ';
+    }
+
+    while (0 < buf_cur--) {
+        size_check(str);
+        if (buf[buf_cur] <= 9) {
+            str->str[(str->cur)++] = buf[buf_cur] + '0';
+        } else if (hf == HEX_LARGE) {
+            str->str[(str->cur)++] = buf[buf_cur] - 10 + 'A';
+        } else {
+            str->str[(str->cur)++] = buf[buf_cur] - 10 + 'a';
+        }
     }
 
     return;
