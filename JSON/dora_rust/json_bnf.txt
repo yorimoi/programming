@@ -1,0 +1,5 @@
+<JSON>     ::= <value>
+<value>    ::= <object> | <array> | <boolean> | <string> | <number> | <null>
+<array>    ::= "[" [ <value> *(', ' <value>) ] "]"
+<object>   ::= "{" [ <property> *(', ' <property>) ] "}"
+<property> ::= <string> ":" <value>
