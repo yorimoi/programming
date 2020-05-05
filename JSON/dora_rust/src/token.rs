@@ -2,23 +2,28 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 // Type is a type alias for a string
-type Type = &'static str;
+pub type Type = &'static str;
 
 // Token is a struct representing a JSON token - It holds information like its Type and Literal, as well
 // as Start, End, and Line fields. Line is used for better error handling, while Start and End are used
 // to return objects/arrays from querys.
 #[allow(non_snake_case)]
+#[derive(Clone)]
 pub struct Token {
-    pub Type:    Type,
-    pub Literal: String,
-    pub Line:    usize,
-    pub Start:   usize,
-    pub End:     usize,
+    pub token_type:    Type,
+    pub literal: String,
+    pub line:    usize,
+    pub start:   usize,
+    pub end:     usize,
 }
 
 impl Token {
-    pub fn new(Type: Type, Line: usize, Start: usize, End: usize, Literal: impl Into<String>) -> Self {
-        Token { Type, Literal: Literal.into(), Line, Start, End }
+    pub fn new(token_type: Type, line: usize, start: usize, end: usize, literal: impl Into<String>) -> Self {
+        Token { token_type, literal: literal.into(), line, start, end }
+    }
+
+    pub fn new_null() -> Self {
+        Token { token_type: NULL, literal: "".to_string(), line:0, start:0, end:0 }
     }
 }
 
@@ -74,7 +79,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn check_lookup_identifier() {
+    fn test_lookup_identifier() {
         assert_eq!(lookup_identifier("true"),  Ok(TRUE));
         assert_eq!(lookup_identifier("false"), Ok(FALSE));
         assert_eq!(lookup_identifier("null"),  Ok(NULL));

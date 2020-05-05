@@ -23,7 +23,7 @@ impl Lexer {
         l
     }
 
-    fn read_char(&mut self) {
+    pub fn read_char(&mut self) {
         if self.input.len() <= self.read_position {
             // End of input (haven't read anything yet or EOF)
             self.char = None;
@@ -52,7 +52,7 @@ impl Lexer {
         self.input[start_position..self.position].to_string()
     }
 
-    fn next_token(&mut self) -> token::Token {
+    pub fn next_token(&mut self) -> token::Token {
         let t: token::Token = {
             self.skip_whitespace();
 
@@ -148,7 +148,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn check_is_letter() {
+    fn test_is_letter() {
         assert!(is_letter('A'));
         assert!(is_letter('Z'));
         assert!(is_letter('a'));
@@ -160,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn check_is_number() {
+    fn test_is_number() {
         assert!(is_number('0'));
         assert!(is_number('9'));
         assert!(is_number('.'));
@@ -170,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn check_read_char() {
+    fn test_read_char() {
         let input = r#"{ "someKey": "someValue", "anotherKey": [123, 456, "789"] }"#;
         let mut l = Lexer::new(&input);
 
@@ -187,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn check_read_string() {
+    fn test_read_string() {
         let input = r#"{ "someKey": "someValue" }"#;
         let mut l = Lexer::new(&input);
 
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn check_read_number() {
+    fn test_read_number() {
         let input = r#"[123, 456, "789"]"#;
         let mut l = Lexer::new(&input);
 
@@ -208,7 +208,7 @@ mod tests {
     }
 
     #[test]
-    fn check_read_identifier() {
+    fn test_read_identifier() {
         let input = r#"[true, false, null]"#;
         let mut l = Lexer::new(&input);
 
@@ -221,7 +221,7 @@ mod tests {
     }
 
     #[test]
-    fn check_skip_whitespace() {
+    fn test_skip_whitespace() {
         let input = r#"{ "someKey":     "someValue" }"#;
         let mut l = Lexer::new(&input);
 
@@ -233,7 +233,7 @@ mod tests {
     }
 
     #[test]
-    fn check_next_token() {
+    fn test_next_token() {
         let input = r#" { } [ ] : , "str" true 123"#;
         let mut l = Lexer::new(&input);
 
