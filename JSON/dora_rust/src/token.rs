@@ -8,7 +8,7 @@ pub type Type = &'static str;
 // as Start, End, and Line fields. Line is used for better error handling, while Start and End are used
 // to return objects/arrays from querys.
 #[allow(non_snake_case)]
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Token {
     pub token_type:    Type,
     pub literal: String,

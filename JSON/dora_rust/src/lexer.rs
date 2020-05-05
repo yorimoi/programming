@@ -66,7 +66,7 @@ impl Lexer {
                 Some(']') =>
                     token::Token::new(token::RIGHTBRACKET, self.line, self.position, self.position+1, "]"),
                 Some(':') =>
-                    token::Token::new(token::COLON,        self.line, self.position, self.position+1, "]"),
+                    token::Token::new(token::COLON,        self.line, self.position, self.position+1, ":"),
                 Some(',') =>
                     token::Token::new(token::COMMA,        self.line, self.position, self.position+1, ","),
                 Some('"') =>
@@ -237,16 +237,16 @@ mod tests {
         let input = r#" { } [ ] : , "str" true 123"#;
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token().Type, token::LEFTBRACE);
-        assert_eq!(l.next_token().Type, token::RIGHTBRACE);
-        assert_eq!(l.next_token().Type, token::LEFTBRACKET);
-        assert_eq!(l.next_token().Type, token::RIGHTBRACKET);
-        assert_eq!(l.next_token().Type, token::COLON);
-        assert_eq!(l.next_token().Type, token::COMMA);
-        assert_eq!(l.next_token().Type, token::STRING);
-        assert_eq!(l.next_token().Type, token::TRUE);
-        assert_eq!(l.next_token().Type, token::NUMBER);
-        assert_eq!(l.next_token().Type, token::EOF);
+        assert_eq!(l.next_token().token_type, token::LEFTBRACE);
+        assert_eq!(l.next_token().token_type, token::RIGHTBRACE);
+        assert_eq!(l.next_token().token_type, token::LEFTBRACKET);
+        assert_eq!(l.next_token().token_type, token::RIGHTBRACKET);
+        assert_eq!(l.next_token().token_type, token::COLON);
+        assert_eq!(l.next_token().token_type, token::COMMA);
+        assert_eq!(l.next_token().token_type, token::STRING);
+        assert_eq!(l.next_token().token_type, token::TRUE);
+        assert_eq!(l.next_token().token_type, token::NUMBER);
+        assert_eq!(l.next_token().token_type, token::EOF);
     }
 }
 
