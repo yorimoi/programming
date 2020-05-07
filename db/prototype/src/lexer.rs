@@ -52,59 +52,72 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn next_token(&mut self) -> token::Token {
+    // After remove pub
+    pub fn next_token(&mut self) -> token::Token {
         self.skip_space();
 
         let tok = match self.ch {
-            Some(';') => token::Token::new(token::TokenKind::Symbol(";"), self.line),
-            Some('*') => token::Token::new(token::TokenKind::Symbol("*"), self.line),
-            Some(',') => token::Token::new(token::TokenKind::Symbol(","), self.line),
-            Some('(') => token::Token::new(token::TokenKind::Symbol("("), self.line),
-            Some(')') => token::Token::new(token::TokenKind::Symbol(")"), self.line),
-            None      => token::Token::new(token::TokenKind::EOF,         self.line),
+            Some(';') => token::Token::new(token::TokenKind::Symbol(token::SEMICOLON), self.line),
+            Some('*') => token::Token::new(token::TokenKind::Symbol(token::ASTERISK),  self.line),
+            Some(',') => token::Token::new(token::TokenKind::Symbol(token::COMMA),     self.line),
+            Some('(') => token::Token::new(token::TokenKind::Symbol(token::LPAREN),    self.line),
+            Some(')') => token::Token::new(token::TokenKind::Symbol(token::RPAREN),    self.line),
+            None      => token::Token::new(token::TokenKind::EOF, self.line),
             Some(_) => {
                 if is_digit(self.char(), self.peek_char()) {
                     let mut number = if char_is(self.char(), Some('-')) {
                         self.read_char();
-                        -char2num(&self.char())
+                        -char2num(self.char())
                     } else {
-                        char2num(&self.char())
+                        char2num(self.char())
                     };
                     while is_digit(self.peek_char(), None) {
-                        number = number * 10 + char2num(&self.peek_char());
+                        number = number * 10 + char2num(self.peek_char());
                         self.read_char();
                     }
                     token::Token::new(token::TokenKind::Number(number), self.line)
-                } else {
-                    if self.ch == Some('\'') {
-                        // String
-                        let mut s = String::new();
-                        self.read_char();
-                        if char_is(self.char(), Some('\'')) {
-                            token::Token::new(token::TokenKind::None, self.line)
-                        } else {
-                            while !char_is(self.peek_char(), Some('\'')) && !char_is(self.peek_char(), None) {
-                                s += &self.char().unwrap().to_string();
-                                self.read_char();
-                            }
+                } else if self.ch == Some('\'') {
+                    // String
+                    let mut s = String::new();
+                    self.read_char();
+                    if char_is(self.char(), Some('\'')) {
+                        token::Token::new(token::TokenKind::String("".to_string()), self.line)
+                    } else {
+                        while !char_is(self.peek_char(), Some('\'')) && !char_is(self.peek_char(), None) {
                             s += &self.char().unwrap().to_string();
                             self.read_char();
-                            token::Token::new(token::TokenKind::String(s), self.line)
                         }
-                    } else {
-                        // Keyword
-                        let mut s = {
-                            String::from(self.char().unwrap().to_string())
-                        };
-                        while !char_is(self.peek_char(), None) && self.peek_char().unwrap().is_alphabetic() {
-                            s += &self.peek_char().unwrap().to_string();
+                        s += &self.char().unwrap().to_string();
+                        self.read_char();
+                        token::Token::new(token::TokenKind::String(s), self.line)
+                    }
+                } else {
+                    // Keyword
+                    let mut s = {
+                        if !self.char().unwrap().is_alphabetic() {
+                            let invalid_chars = {
+                                let mut s = self.char().unwrap().to_string();
+                                while !char_is(self.peek_char(), None) && !self.peek_char().unwrap().is_alphabetic()
+                                && self.peek_char() != Some(' ') {
+                                    s += &self.peek_char().unwrap().to_string();
+                                    self.read_char();
+                                }
+                                s
+                            };
+                            let emsg = format!(r#"error: Invalid character: "{}""#, invalid_chars);
                             self.read_char();
+                            return token::Token::new(token::TokenKind::Illegal(emsg), self.line)
                         }
-                        if let Ok(keyword) = token::is_keyword(&s) {
-                            token::Token::new(token::TokenKind::Keyword(keyword), self.line)
-                        } else {
-                            token::Token::new(token::TokenKind::Identifier(s), self.line)
-                        }
+                        self.char().unwrap().to_string()
+                    };
+                    while !char_is(self.peek_char(), None) && self.peek_char().unwrap().is_alphabetic() {
+                        s += &self.peek_char().unwrap().to_string();
+                        self.read_char();
+                    }
+                    if let Ok(keyword) = token::is_keyword(&s) {
+                        token::Token::new(token::TokenKind::Keyword(keyword), self.line)
+                    } else {
+                        token::Token::new(token::TokenKind::Identifier(s), self.line)
                     }
                 }
             },
@@ -131,7 +144,7 @@ fn char_is(ch: Option<char>, is: Option<char>) -> bool {
     ch == is
 }
 
-fn char2num(ch: &Option<char>) -> i64 {
+fn char2num(ch: Option<char>) -> i64 {
     ch.unwrap() as i64 - 48
 }
 
@@ -183,11 +196,11 @@ mod tests {
         let input = ";*,()";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(";"), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol("*"), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(","), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol("("), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(")"), 1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::SEMICOLON), 1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::ASTERISK),  1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::COMMA),     1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::LPAREN),    1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::RPAREN),    1));
         assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
     }
 

@@ -28,14 +28,13 @@ pub enum TokenKind {
     Identifier(String),
     String(String),
     Number(i64),
-    None,
     Illegal(String),
     EOF,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
-    kind: TokenKind,
+    pub kind: TokenKind,
     line: usize,
 }
 
@@ -66,7 +65,7 @@ lazy_static! {
 
 // Too late. Change from Result to bool
 pub fn is_keyword(s: &str) -> Result<Keyword, String> {
-    let lower_s: String = s.to_ascii_lowercase().into();
+    let lower_s: String = s.to_ascii_lowercase();
     if let Some(keyword) = VALID_KEYWORDS.get(&lower_s) {
         Ok(keyword)
     } else {
