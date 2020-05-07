@@ -1,7 +1,6 @@
-mod repl;
-mod token;
-mod lexer;
-mod parser;
+extern crate prototype;
+
+use prototype::repl;
 
 fn main() {
     repl::run();

@@ -225,7 +225,7 @@ mod tests {
 
         assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("string".to_string()), 1));
         assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("123".to_string()),    1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::None,                         1));
+        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("".to_string()),       1));
         assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("\"".to_string()),     1));
         assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
     }
