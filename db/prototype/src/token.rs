@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use std::collections::HashMap;
 
 pub type Keyword = &'static str;
 pub const SELECT: Keyword = "select";
@@ -16,20 +18,58 @@ pub type Symbol = &'static str;
 pub const SEMICOLON : Symbol = ";";
 pub const ASTERISK  : Symbol = "*";
 pub const COMMA     : Symbol = ",";
-pub const LEFTPAREN : Symbol = "(";
-pub const RIGHTPAREN: Symbol = ")";
+pub const LPAREN    : Symbol = "(";
+pub const RPAREN    : Symbol = ")";
 
+#[derive(Debug, PartialEq)]
 pub enum TokenKind {
-    Keyword,
-    Symbol,
-    Identifier,
-    String,
-    Number,
+    Keyword(Keyword),
+    Symbol(Symbol),
+    Identifier(String),
+    String(String),
+    Number(i64),
+    None,
+    Illegal(String),
     EOF,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Token {
-    literal: String,
     kind: TokenKind,
     line: usize,
+}
+
+impl Token {
+    pub fn new(kind: TokenKind, line: usize) -> Token {
+        Token { kind, line }
+    }
+}
+
+lazy_static! {
+    //static ref VALID_KEYWORDS: HashMap<&'static str, Keyword> = {
+    static ref VALID_KEYWORDS: HashMap<String, Keyword> = {
+        let mut m = HashMap::new();
+        m.insert("select".to_string(), SELECT);
+        m.insert("from".to_string(),   FROM  );
+        m.insert("as".to_string(),     AS    );
+        m.insert("table".to_string(),  TABLE );
+        m.insert("create".to_string(), CREATE);
+        m.insert("insert".to_string(), INSERT);
+        m.insert("into".to_string(),   INTO  );
+        m.insert("values".to_string(), VALUES);
+        m.insert("int".to_string(),    INT   );
+        m.insert("text".to_string(),   TEXT  );
+        m.insert("none".to_string(),   NONE  );
+        m
+    };
+}
+
+// Too late. Change from Result to bool
+pub fn is_keyword(s: &str) -> Result<Keyword, String> {
+    let lower_s: String = s.to_ascii_lowercase().into();
+    if let Some(keyword) = VALID_KEYWORDS.get(&lower_s) {
+        Ok(keyword)
+    } else {
+        Err(format!("Expected a valid keyword. But found: {}", lower_s))
+    }
 }
