@@ -21,7 +21,7 @@ pub const COMMA     : Symbol = ",";
 pub const LPAREN    : Symbol = "(";
 pub const RPAREN    : Symbol = ")";
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
     Keyword(Keyword),
     Symbol(Symbol),
@@ -32,15 +32,19 @@ pub enum TokenKind {
     EOF,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
-    line: usize,
+    pub line: usize,
 }
 
 impl Token {
     pub fn new(kind: TokenKind, line: usize) -> Token {
         Token { kind, line }
+    }
+
+    pub fn expect(&self, kind: TokenKind) -> bool {
+        self.kind == kind
     }
 }
 

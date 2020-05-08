@@ -7,6 +7,7 @@ pub struct Lexer<'a> {
     peek_position: usize,
     ch: Option<char>,
     line: usize,
+    token: token::Token,
 }
 
 impl<'a> Lexer<'a> {
@@ -18,6 +19,7 @@ impl<'a> Lexer<'a> {
             peek_position: 0,
             ch: None,
             line: 1,
+            token: token::Token::new(token::TokenKind::EOF, 0),
         };
         lexer.read_char();
 
@@ -53,7 +55,7 @@ impl<'a> Lexer<'a> {
     }
 
     // After remove pub
-    pub fn next_token(&mut self) -> token::Token {
+    pub fn next_token(&mut self) -> &token::Token {
         self.skip_space();
 
         let tok = match self.ch {
@@ -106,7 +108,8 @@ impl<'a> Lexer<'a> {
                             };
                             let emsg = format!(r#"error: Invalid character: "{}""#, invalid_chars);
                             self.read_char();
-                            return token::Token::new(token::TokenKind::Illegal(emsg), self.line)
+                            self.token = token::Token::new(token::TokenKind::Illegal(emsg), self.line);
+                            return &self.token;
                         }
                         self.char().unwrap().to_string()
                     };
@@ -124,7 +127,12 @@ impl<'a> Lexer<'a> {
         };
 
         self.read_char();
-        tok
+        self.token = tok;
+        &self.token
+    }
+
+    pub fn token(&self) -> &token::Token {
+        &self.token
     }
 }
 
@@ -171,10 +179,10 @@ mod tests {
         let input = "1\n2\n\n3\n";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(1), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(2), 2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(3), 4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 5));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(1), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(2), 2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(3), 4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 5));
     }
 
     #[test]
@@ -196,12 +204,12 @@ mod tests {
         let input = ";*,()";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::SEMICOLON), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::ASTERISK),  1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::COMMA),     1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::LPAREN),    1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::RPAREN),    1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::SEMICOLON), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::ASTERISK),  1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::COMMA),     1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::LPAREN),    1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::RPAREN),    1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 1));
     }
 
     #[test]
@@ -209,13 +217,13 @@ mod tests {
         let input = "-1 -0 0 1 42 -100";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(  -1), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(  -0), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(   0), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(   1), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(  42), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(-100), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(  -1), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(  -0), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(   0), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(   1), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(  42), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(-100), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 1));
     }
 
     #[test]
@@ -223,11 +231,11 @@ mod tests {
         let input = "'string' '123' '''\"'";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("string".to_string()), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("123".to_string()),    1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("".to_string()),       1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("\"".to_string()),     1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::String("string".to_string()), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::String("123".to_string()),    1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::String("".to_string()),       1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::String("\"".to_string()),     1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 1));
     }
 
     #[test]
@@ -235,18 +243,18 @@ mod tests {
         let input = "select from as table create insert into values int text none";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::SELECT), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::FROM),   1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::AS),     1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::TABLE),  1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::CREATE), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INSERT), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INTO),   1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::VALUES), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INT),    1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::TEXT),   1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::NONE),   1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::SELECT), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::FROM),   1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::AS),     1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::TABLE),  1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::CREATE), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INSERT), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INTO),   1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::VALUES), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INT),    1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::TEXT),   1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::NONE),   1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 1));
     }
 
     #[test]
@@ -254,10 +262,10 @@ mod tests {
         let input = "id name user";
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("id".to_string()),   1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("name".to_string()), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("user".to_string()), 1));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("id".to_string()),   1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("name".to_string()), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("user".to_string()), 1));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 1));
     }
 
     #[test]
@@ -268,34 +276,34 @@ mod tests {
             SELECT id, name FROM users;"#;
         let mut l = Lexer::new(&input);
 
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::CREATE),          2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::TABLE),           2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("users".to_string()), 2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::LPAREN),           2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("id".to_string()),    2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INT),             2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::COMMA),            2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("name".to_string()),  2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::TEXT),            2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::RPAREN),           2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        2));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INSERT),          3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::INTO),            3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("users".to_string()), 3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::VALUES),          3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::LPAREN),           3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Number(1),                       3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::COMMA),            3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::String("Alice".to_string()),     3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::RPAREN),           3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        3));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::SELECT),          4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("id".to_string()),    4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::COMMA),            4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("name".to_string()),  4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Keyword(token::FROM),            4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Identifier("users".to_string()), 4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        4));
-        assert_eq!(l.next_token(), token::Token::new(token::TokenKind::EOF, 4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::CREATE),          2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::TABLE),           2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("users".to_string()), 2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::LPAREN),           2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("id".to_string()),    2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INT),             2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::COMMA),            2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("name".to_string()),  2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::TEXT),            2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::RPAREN),           2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        2));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INSERT),          3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::INTO),            3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("users".to_string()), 3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::VALUES),          3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::LPAREN),           3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Number(1),                       3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::COMMA),            3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::String("Alice".to_string()),     3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::RPAREN),           3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        3));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::SELECT),          4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("id".to_string()),    4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::COMMA),            4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("name".to_string()),  4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Keyword(token::FROM),            4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Identifier("users".to_string()), 4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::Symbol(token::SEMICOLON),        4));
+        assert_eq!(l.next_token(), &token::Token::new(token::TokenKind::EOF, 4));
     }
 }
