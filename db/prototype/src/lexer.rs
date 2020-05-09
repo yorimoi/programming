@@ -117,7 +117,7 @@ impl<'a> Lexer<'a> {
                         s += &self.peek_char().unwrap().to_string();
                         self.read_char();
                     }
-                    if let Ok(keyword) = token::is_keyword(&s) {
+                    if let Some(keyword) = token::is_keyword(&s) {
                         token::Token::new(token::TokenKind::Keyword(keyword), self.line)
                     } else {
                         token::Token::new(token::TokenKind::Identifier(s), self.line)

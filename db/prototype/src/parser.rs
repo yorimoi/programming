@@ -8,7 +8,7 @@ pub fn parse(source: &str) -> Result<Ast, String> {
     let mut node: Ast = Default::default();
 
     tokens.next_token();
-    while !tokens.token().expect(TokenKind::EOF) {
+    while tokens.token().kind != TokenKind::EOF {
         let stmt = match parse_statement(&mut tokens) {
             Ok(stmt) => stmt,
             Err(e) => return Err(e),
@@ -17,9 +17,7 @@ pub fn parse(source: &str) -> Result<Ast, String> {
         node.push_statement(stmt);
 
         tokens.next_token();
-        if !tokens.token().expect(TokenKind::Symbol(token::SEMICOLON)) {
-            return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::SEMICOLON)), tokens.token()));
-        }
+        tokens.token().expect(TokenKind::Symbol(token::SEMICOLON))?;
 
         tokens.next_token();
     }
@@ -53,11 +51,9 @@ fn parse_select_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
 
     // until FROM
     tokens.next_token();
-    while !tokens.token().expect(TokenKind::Keyword(token::FROM)) {
+    while tokens.token().kind != TokenKind::Keyword(token::FROM) {
         // ,
-        if !tokens.token().expect(TokenKind::Symbol(token::COMMA)) {
-            return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::COMMA)), tokens.token()));
-        }
+        tokens.token().expect(TokenKind::Symbol(token::COMMA))?;
 
         // column
         tokens.next_token();
@@ -84,9 +80,7 @@ fn parse_select_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
 fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String> {
     // TABLE
     tokens.next_token();
-    if !tokens.token().expect(TokenKind::Keyword(token::TABLE)) {
-        return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::TABLE)), tokens.token()));
-    }
+    tokens.token().expect(TokenKind::Keyword(token::TABLE))?;
 
     // Table name
     tokens.next_token();
@@ -98,9 +92,7 @@ fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, 
 
     // (
     tokens.next_token();
-    if !tokens.token().expect(TokenKind::Symbol(token::LPAREN)) {
-        return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::LPAREN)), tokens.token()));
-    }
+    tokens.token().expect(TokenKind::Symbol(token::LPAREN))?;
 
     // [column-name column-type [, ...]]
     let mut cols: Vec<ColumnDefinition> = Vec::new();
@@ -120,10 +112,8 @@ fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, 
 
     // until ')'
     tokens.next_token();
-    while !tokens.token().expect(TokenKind::Symbol(token::RPAREN)) {
-        if !tokens.token().expect(TokenKind::Symbol(token::COMMA)) {
-            return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::COMMA)), tokens.token()));
-        }
+    while tokens.token().kind != TokenKind::Symbol(token::RPAREN) {
+        tokens.token().expect(TokenKind::Symbol(token::COMMA))?;
 
         tokens.next_token();
         if let TokenKind::Identifier(_) = tokens.token().kind {
@@ -148,9 +138,7 @@ fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, 
 fn parse_insert_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String> {
     // INTO
     tokens.next_token();
-    if !tokens.token().expect(TokenKind::Keyword(token::INTO)) {
-        return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::INTO)), tokens.token()));
-    }
+    tokens.token().expect(TokenKind::Keyword(token::INTO))?;
 
     // Table name
     tokens.next_token();
@@ -162,15 +150,11 @@ fn parse_insert_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
 
     // VALUES
     tokens.next_token();
-    if !tokens.token().expect(TokenKind::Keyword(token::VALUES)) {
-        return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::VALUES)), tokens.token()));
-    }
+    tokens.token().expect(TokenKind::Keyword(token::VALUES))?;
 
     // (
     tokens.next_token();
-    if !tokens.token().expect(TokenKind::Symbol(token::LPAREN)) {
-        return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::LPAREN)), tokens.token()));
-    }
+    tokens.token().expect(TokenKind::Symbol(token::LPAREN))?;
 
     // Expression
     let mut values: Vec<Expression> = Vec::new();
@@ -183,10 +167,8 @@ fn parse_insert_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
 
     // until ')'
     tokens.next_token();
-    while !tokens.token().expect(TokenKind::Symbol(token::RPAREN)) {
-        if !tokens.token().expect(TokenKind::Symbol(token::COMMA)) {
-            return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::COMMA)), tokens.token()));
-        }
+    while tokens.token().kind != TokenKind::Symbol(token::RPAREN) {
+        tokens.token().expect(TokenKind::Symbol(token::COMMA))?;
 
         tokens.next_token();
         if tokens.token().expect_expression() {

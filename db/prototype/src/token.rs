@@ -43,8 +43,12 @@ impl Token {
         Token { kind, line }
     }
 
-    pub fn expect(&self, kind: TokenKind) -> bool {
-        self.kind == kind
+    pub fn expect(&self, expect: TokenKind) -> Result<(), String> {
+        if self.kind == expect {
+            Ok(())
+        } else {
+            Err(format!("{}: error: expect={:?}. got={:?}", self.line, expect, self.kind))
+        }
     }
 
     pub fn expect_expression(&self) -> bool {
@@ -75,12 +79,11 @@ lazy_static! {
     };
 }
 
-// Too late. Change from Result to bool
-pub fn is_keyword(s: &str) -> Result<Keyword, String> {
+pub fn is_keyword(s: &str) -> Option<Keyword> {
     let lower_s: String = s.to_ascii_lowercase();
     if let Some(keyword) = VALID_KEYWORDS.get(&lower_s) {
-        Ok(keyword)
+        Some(keyword)
     } else {
-        Err(format!("Expected a valid keyword. But found: {}", lower_s))
+        None
     }
 }
