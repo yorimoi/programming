@@ -1,6 +1,4 @@
 
-use crate::token;
-use crate::lexer;
 use crate::parser;
 
 use std::io::{stdout, Write};
@@ -18,14 +16,7 @@ pub fn run() {
             s
         };
 
-        let mut l = lexer::Lexer::new(&input);
-        loop {
-            let token = l.next_token();
-            if token.kind == token::TokenKind::EOF {
-                break;
-            }
-            print!("{:?}", token);
-        }
-        println!();
+        let ast = parser::parse(&input);
+        println!("{:?}", ast);
     }
 }

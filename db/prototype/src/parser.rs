@@ -7,6 +7,7 @@ pub fn parse(source: &str) -> Result<Ast, String> {
     let mut tokens = lexer::Lexer::new(source);
     let mut node: Ast = Default::default();
 
+    tokens.next_token();
     while !tokens.token().expect(TokenKind::EOF) {
         let stmt = match parse_statement(&mut tokens) {
             Ok(stmt) => stmt,
@@ -15,9 +16,12 @@ pub fn parse(source: &str) -> Result<Ast, String> {
 
         node.push_statement(stmt);
 
+        tokens.next_token();
         if !tokens.token().expect(TokenKind::Symbol(token::SEMICOLON)) {
             return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::SEMICOLON)), tokens.token()));
         }
+
+        tokens.next_token();
     }
 
     Ok(node)
