@@ -384,4 +384,94 @@ mod tests {
             assert_eq!(parse_statement(&mut l), test.expect);
         }
     }
+    #[test]
+    fn test_parse() {
+        struct Test {
+            input: &'static str,
+            expect: Result<Ast, String>,
+        }
+        let tests = vec![
+            Test {
+                input: "create table users (id INT, name TEXT);
+                        insert into users values (1, 'Alice');
+                        select id, name from users;",
+                expect: Ok(
+                    Ast {
+                        statements: vec![
+                            Statement {
+                                select: None,
+                                create: Some(
+                                    CreateTableStatement {
+                                        name: token::Token {
+                                            kind: TokenKind::Identifier("users".to_string()), line: 1,
+                                        },
+                                        cols: vec![
+                                            ColumnDefinition {
+                                                name: token::Token {
+                                                    kind: TokenKind::Identifier("id".to_string()), line: 1,
+                                                },
+                                                data_type: token::Token {
+                                                    kind: TokenKind::Keyword(token::INT), line: 1,
+                                                },
+                                            },
+                                            ColumnDefinition {
+                                                name: token::Token {
+                                                    kind: TokenKind::Identifier("name".to_string()), line: 1,
+                                                },
+                                                data_type: token::Token {
+                                                    kind: TokenKind::Keyword(token::TEXT), line: 1,
+                                                },
+                                            }
+                                        ],
+                                    }
+                                ),
+                                insert: None,
+                                kind: AstKind::Create,
+                            },
+                            Statement {
+                                select: None,
+                                create: None,
+                                insert: Some(
+                                    InsertStatement {
+                                        table: token::Token {
+                                            kind: TokenKind::Identifier("users".to_string()), line: 2,
+                                        },
+                                        values: vec![
+                                            token::Token {
+                                                kind: TokenKind::Number(1), line: 2,
+                                            },
+                                            token::Token {
+                                                kind: TokenKind::String("Alice".to_string()), line: 2,
+                                            }
+                                        ],
+                                    }
+                                ),
+                                kind: AstKind::Insert,
+                            },
+                            Statement {
+                                select: Some(
+                                    SelectStatement {
+                                        item: vec![token::Token {
+                                            kind: TokenKind::Identifier("id".to_string()), line: 3,
+                                        }, token::Token {
+                                            kind: TokenKind::Identifier("name".to_string()), line: 3,
+                                        }],
+                                        from: token::Token {
+                                            kind: TokenKind::Identifier("users".to_string()), line: 3,
+                                        },
+                                    }),
+                                    create: None,
+                                    insert: None,
+                                    kind: AstKind::Select,
+                            },
+                        ]
+                    }
+                ),
+            },
+        ];
+
+        for test in tests.iter() {
+            assert_eq!(parse(&test.input), test.expect);
+        }
+    }
 }

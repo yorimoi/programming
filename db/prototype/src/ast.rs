@@ -2,9 +2,9 @@ use crate::token;
 
 pub type Expression = token::Token;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Ast {
-    statements: Vec<Statement>,
+    pub statements: Vec<Statement>,
 }
 
 impl Ast {
