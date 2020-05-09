@@ -40,12 +40,14 @@ fn parse_select_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
     tokens.next_token();
     let mut item: Vec<Expression> = Vec::new();
 
+    // column name
     if let TokenKind::Identifier(_) = tokens.token().kind {
         item.push(tokens.token().clone())
     } else {
         return Err(error_message("expect column name", tokens.token()));
     }
 
+    // until FROM
     tokens.next_token();
     while !tokens.token().expect(TokenKind::Keyword(token::FROM)) {
         // ,
@@ -76,6 +78,7 @@ fn parse_select_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String
 }
 
 fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String> {
+    // TABLE
     tokens.next_token();
     if !tokens.token().expect(TokenKind::Keyword(token::TABLE)) {
         return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::TABLE)), tokens.token()));
@@ -139,9 +142,59 @@ fn parse_create_table_statement(tokens: &mut lexer::Lexer) -> Result<Statement, 
 }
 
 fn parse_insert_statement(tokens: &mut lexer::Lexer) -> Result<Statement, String> {
+    // INTO
     tokens.next_token();
+    if !tokens.token().expect(TokenKind::Keyword(token::INTO)) {
+        return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::INTO)), tokens.token()));
+    }
 
-    todo!();
+    // Table name
+    tokens.next_token();
+    let table = if let TokenKind::Identifier(_) = tokens.token().kind {
+        tokens.token().clone()
+    } else {
+        return Err(error_message("expect table name", tokens.token()));
+    };
+
+    // VALUES
+    tokens.next_token();
+    if !tokens.token().expect(TokenKind::Keyword(token::VALUES)) {
+        return Err(error_message(&format!("expect={:?}", TokenKind::Keyword(token::VALUES)), tokens.token()));
+    }
+
+    // (
+    tokens.next_token();
+    if !tokens.token().expect(TokenKind::Symbol(token::LPAREN)) {
+        return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::LPAREN)), tokens.token()));
+    }
+
+    // Expression
+    let mut values: Vec<Expression> = Vec::new();
+    tokens.next_token();
+    if tokens.token().expect_expression() {
+        values.push(tokens.token().clone());
+    } else {
+        return Err(error_message("expect expression", tokens.token()));
+    }
+
+    // until ')'
+    tokens.next_token();
+    while !tokens.token().expect(TokenKind::Symbol(token::RPAREN)) {
+        if !tokens.token().expect(TokenKind::Symbol(token::COMMA)) {
+            return Err(error_message(&format!("expect={:?}", TokenKind::Symbol(token::COMMA)), tokens.token()));
+        }
+
+        tokens.next_token();
+        if tokens.token().expect_expression() {
+            values.push(tokens.token().clone());
+        } else {
+            return Err(error_message("expect expression", tokens.token()));
+        }
+        tokens.next_token();
+    }
+
+    let stmt = InsertStatement::new(table, values);
+    Ok(Statement::new_insert(stmt))
 }
 
 fn error_message(emsg: &str, actual: &token::Token) -> String {
@@ -272,6 +325,52 @@ mod tests {
             Test {
                 input: "create table users (id INT name TEXT);",
                 expect: Err(r#"1: error: expect=Symbol(","). got=Identifier("name")"#.to_string())
+            },
+            Test {
+                input: "insert into users values (1, 'Alice');",
+                expect: Ok(Statement {
+                    select: None,
+                    create: None,
+                    insert: Some(
+                                InsertStatement {
+                                    table: token::Token {
+                                        kind: TokenKind::Identifier("users".to_string()), line: 1,
+                                    },
+                                    values: vec![
+                                        token::Token {
+                                            kind: TokenKind::Number(1), line: 1,
+                                        },
+                                        token::Token {
+                                            kind: TokenKind::String("Alice".to_string()), line: 1,
+                                        }
+                                    ],
+                                }),
+                    kind: AstKind::Insert,
+                }),
+            },
+            Test {
+                input: "insert users values (1, 'Alice');",
+                expect: Err(r#"1: error: expect=Keyword("into"). got=Identifier("users")"#.to_string())
+            },
+            Test {
+                input: "insert into values (1, 'Alice');",
+                expect: Err(r#"1: error: expect table name. got=Keyword("values")"#.to_string())
+            },
+            Test {
+                input: "insert into users (1, 'Alice');",
+                expect: Err(r#"1: error: expect=Keyword("values"). got=Symbol("(")"#.to_string())
+            },
+            Test {
+                input: "insert into users values 1, 'Alice');",
+                expect: Err(r#"1: error: expect=Symbol("("). got=Number(1)"#.to_string())
+            },
+            Test {
+                input: "insert into users values ( , 'Alice');",
+                expect: Err(r#"1: error: expect expression. got=Symbol(",")"#.to_string())
+            },
+            Test {
+                input: "insert into users values (1 'Alice');",
+                expect: Err(r#"1: error: expect=Symbol(","). got=String("Alice")"#.to_string())
             },
         ];
 

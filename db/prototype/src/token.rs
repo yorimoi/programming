@@ -26,8 +26,8 @@ pub enum TokenKind {
     Keyword(Keyword),
     Symbol(Symbol),
     Identifier(String),
-    String(String),
-    Number(i64),
+    String(String), // Expression
+    Number(i64),    // Expression
     Illegal(String),
     EOF,
 }
@@ -45,6 +45,14 @@ impl Token {
 
     pub fn expect(&self, kind: TokenKind) -> bool {
         self.kind == kind
+    }
+
+    pub fn expect_expression(&self) -> bool {
+        match self.kind {
+            TokenKind::String(_) |
+                TokenKind::Number(_) => true,
+            _ => false,
+        }
     }
 }
 

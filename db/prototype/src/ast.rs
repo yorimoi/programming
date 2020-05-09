@@ -52,6 +52,15 @@ impl Statement {
             kind: AstKind::Create,
         }
     }
+
+    pub fn new_insert(stmt: InsertStatement) -> Self {
+        Self {
+            select: None,
+            create: None,
+            insert: Some(stmt),
+            kind: AstKind::Insert,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -68,8 +77,14 @@ impl SelectStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct InsertStatement {
-    table: token::Token,
-    values: Vec<Expression>,
+    pub table: token::Token,
+    pub values: Vec<Expression>,
+}
+
+impl InsertStatement {
+    pub fn new(table: token::Token, values: Vec<Expression>) -> Self {
+        Self { table, values, }
+    }
 }
 
 #[derive(Debug, PartialEq)]
