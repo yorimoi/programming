@@ -43,6 +43,15 @@ impl Statement {
             kind: AstKind::Select,
         }
     }
+
+    pub fn new_create(stmt: CreateTableStatement) -> Self {
+        Self {
+            select: None,
+            create: Some(stmt),
+            insert: None,
+            kind: AstKind::Create,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -65,11 +74,24 @@ pub struct InsertStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct ColumnDefinition {
-    name: token::Token,
+    pub name: token::Token,
+    pub data_type: token::Token,
+}
+
+impl ColumnDefinition {
+    pub fn new(name: token::Token, data_type: token::Token) -> Self {
+        Self { name, data_type, }
+    }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CreateTableStatement {
-    name: token::Token,
-    cols: Vec<ColumnDefinition>,
+    pub name: token::Token,
+    pub cols: Vec<ColumnDefinition>,
+}
+
+impl CreateTableStatement {
+    pub fn new(name: token::Token, cols: Vec<ColumnDefinition>) -> Self {
+        Self { name, cols, }
+    }
 }
