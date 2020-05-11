@@ -3,14 +3,24 @@ use crate::ast::*;
 
 use std::collections::HashMap;
 
+#[derive(Debug, Default)]
 pub struct Table {
-    name:      String,
-    columns:   HashMap<String, TokenKind>,  // [INT|TEXT]
-    col_names: Vec<String>,
-    rows:      Vec<HashMap<String, TokenKind>>,
+    pub name:      String,
+    pub columns:   HashMap<String, TokenKind>,  // [INT|TEXT]
+    pub col_names: Vec<String>,
+    pub rows:      Vec<HashMap<String, TokenKind>>,
 }
 
 impl Table {
+    //pub fn new() -> Self {
+    //    Self {
+    //        name:      "NONE".to_string(),
+    //        columns:   HashMap::new(),
+    //        col_names: Vec::new(),
+    //        rows:      Vec::new(),
+    //    }
+    //}
+
     pub fn create_table(cts: &CreateTableStatement) -> Result<Self, String> {
         let name = match pop_string(&cts.name.kind) {
             Ok(s) => s,
@@ -47,7 +57,7 @@ impl Table {
 
     pub fn select(&self, ss: &SelectStatement) -> Result<Table, String> {
         if pop_string(&ss.from.kind)? != self.name {
-            Err("error: invalid table name".to_string());
+            return Err("error: invalid table name".to_string());
         }
 
         let mut columns:  HashMap<String, TokenKind> = HashMap::new();
