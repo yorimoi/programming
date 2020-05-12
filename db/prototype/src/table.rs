@@ -12,15 +12,6 @@ pub struct Table {
 }
 
 impl Table {
-    //pub fn new() -> Self {
-    //    Self {
-    //        name:      "NONE".to_string(),
-    //        columns:   HashMap::new(),
-    //        col_names: Vec::new(),
-    //        rows:      Vec::new(),
-    //    }
-    //}
-
     pub fn create_table(cts: &CreateTableStatement) -> Result<Self, String> {
         let name = match pop_string(&cts.name.kind) {
             Ok(s) => s,
