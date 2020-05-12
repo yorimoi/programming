@@ -5,3 +5,4 @@ pub mod parser;
 pub mod ast;
 pub mod table;
 pub mod display;
+pub mod server;

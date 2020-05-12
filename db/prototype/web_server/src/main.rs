@@ -27,7 +27,25 @@ fn handle_connection(mut stream: TcpStream) {
         let status_line = "HTTP/1.1 200 OK\r\n\r\n";
         let request = String::from_utf8_lossy(&buffer[..]);
 
-        let contents = parse_request_line(&request);
+        let post = parse_request_line(&request);
+
+        // send to database
+        let mut db_stream = TcpStream::connect("localhost:5432").unwrap();
+        db_stream.write(post.as_bytes()).unwrap();
+
+        let mut result = [0; 1024];
+        let table = match db_stream.read(&mut result) {
+            Ok(_) => {
+                String::from_utf8_lossy(&result)
+            },
+            Err(e) => {
+                eprintln!("Failed to receive data: {}", e);
+                return;
+            }
+        };
+
+        let contents = format!(
+            r#"<html><head><meta charset="utf-8"><title>sql</title><body>{}</body></html>"#, table);
 
         let response = format!("{}{}", status_line, contents);
 
@@ -55,9 +73,19 @@ fn parse_request_line(request: &str) -> String {
 
     for line in request.lines() {
         if line.starts_with("sql=") {
-            post += line;
+            post += &line[4..];
         }
     }
 
-    format!(r#"<html><head><meta charset="utf-8"><title>sql</title><body>{}</body></html>"#, post)
+    unescape(&post)
+}
+
+fn unescape(text: &str) -> String {
+    text.replace('\0', "")
+        .replace("+", " ")
+        .replace("%2C", ",")
+        .replace("%3B", ";")
+        .replace("%28", "(")
+        .replace("%29", ")")
+        .replace("%27", "'")
 }
