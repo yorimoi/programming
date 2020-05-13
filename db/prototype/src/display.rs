@@ -31,25 +31,26 @@ pub fn html(table: &table::Table) -> String {
     let mut ret = String::new();
 
     // header
-    let mut len = 0;
+    ret += r#"<table border="1"><tr>"#;
     for name in &table.col_names {
-        len += name.len() + 3;
-        ret += &format!("| {} ", name);
+        ret += &format!("<th>{}</th>", name);
     }
-    ret += &format!("|<br />={:=<width$}<br />", "=", width = len);
+    ret += "</tr>";
 
     // body
     for row in &table.rows {
+        ret += "</tr>";
         for name in &table.col_names {
             let col = row.get(name);
             match col {
-                Some(TokenKind::Number(n)) => ret += &format!("| {} ", n),
-                Some(TokenKind::String(s)) => ret += &format!("| {} ", s),
-                _ => print!("| NONE "),
+                Some(TokenKind::Number(n)) => ret += &format!("<td>{}</td>", n),
+                Some(TokenKind::String(s)) => ret += &format!("<td>{}</td>", s),
+                _ => print!("<td>NONE</td>"),
             }
         }
-        ret += "|<br />";
+        ret += "</tr>";
     }
+    ret += "</table>";
 
     ret
 }

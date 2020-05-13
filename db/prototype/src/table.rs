@@ -4,6 +4,11 @@ use crate::ast::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
+pub struct Tables<'a> {
+    pub table: HashMap<String, &'a Table>,  // <table-name, &Table>
+}
+
+#[derive(Debug, Default)]
 pub struct Table {
     pub name:      String,
     pub columns:   HashMap<String, TokenKind>,  // [INT|TEXT]

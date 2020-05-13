@@ -6,10 +6,11 @@ use std::fs::File;
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    println!("Server listening on port 7878");
+
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        //println!("Connection established!");
         handle_connection(stream);
     }
 }
@@ -45,7 +46,20 @@ fn handle_connection(mut stream: TcpStream) {
         };
 
         let contents = format!(
-            r#"<html><head><meta charset="utf-8"><title>sql</title><body>{}</body></html>"#, table);
+r#"<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Hello!</title>
+    </head>
+    <body>
+        {}
+        <form method="post">
+            <input type="text" name="sql" size="40">
+            <input type="submit" value="send">
+        </form>
+    </body>
+</html>"#, table);
 
         let response = format!("{}{}", status_line, contents);
 

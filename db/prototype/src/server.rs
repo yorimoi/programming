@@ -14,6 +14,7 @@ pub fn run() {
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
+
         handle_connection(stream, &mut table);
     }
 
@@ -25,12 +26,11 @@ fn handle_connection(mut stream: TcpStream, table: &mut table::Table) {
 
     while match stream.read(&mut data) {
         Ok(size) => {
-            let input = String::from_utf8_lossy(&data[0..size]);
-
-            if input == "" {
-                println!("input: NULL");
+            if size < 2 {
                 return;
             }
+
+            let input = String::from_utf8_lossy(&data[0..size]);
 
             let ast = match parser::parse(&input) {
                 Ok(ast) => ast,
@@ -71,6 +71,7 @@ fn handle_connection(mut stream: TcpStream, table: &mut table::Table) {
             }
 
             stream.write(ret.as_bytes()).unwrap();
+
             true
         },
         Err(_) => {
