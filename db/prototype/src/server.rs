@@ -49,13 +49,13 @@ fn handle_connection(mut stream: TcpStream, tables: &mut Tables) {
                             Ok(virtual_table) => {
                                 ret += &display::html(&virtual_table);
                             },
-                            Err(e) => ret += &format!("{}", e),
+                            Err(e) => ret += &e.to_string(),
                         }
                     },
                     AstKind::Insert => {
                         match tables.insert(&stmt.insert.unwrap()) {
                             Ok(_) => ret += "ok<br />",
-                            Err(e) => ret += &format!("{}", e),
+                            Err(e) => ret += &e.to_string(),
                         }
                     },
                     AstKind::Create => {
@@ -63,13 +63,13 @@ fn handle_connection(mut stream: TcpStream, tables: &mut Tables) {
                             Ok(_) => {
                                 ret += "ok<br />";
                             },
-                            Err(e) => ret += &format!("{}", e),
+                            Err(e) => ret += &e.to_string(),
                         };
                     },
                 }
             }
 
-            stream.write(ret.as_bytes()).unwrap();
+            stream.write_all(ret.as_bytes()).unwrap();
 
             true
         },

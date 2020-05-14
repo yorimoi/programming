@@ -8,7 +8,7 @@ use std::io::{stdout, Write};
 
 pub fn run() {
     let prompt = ">> ";
-    let mut table: table::Table = Default::default();
+    let mut tables: table::Tables = Default::default();
 
     println!("Welcome to prototypesql");
     println!("Use `exit` to exit\n");
@@ -40,7 +40,7 @@ pub fn run() {
         for stmt in ast.statements {
             match stmt.kind {
                 AstKind::Select => {
-                    match table.select(&stmt.select.unwrap()) {
+                    match tables.select(&stmt.select.unwrap()) {
                         Ok(virtual_table) => {
                             display::view(&virtual_table);
                         },
@@ -48,16 +48,15 @@ pub fn run() {
                     }
                 },
                 AstKind::Insert => {
-                    match table.insert(&stmt.insert.unwrap()) {
+                    match tables.insert(&stmt.insert.unwrap()) {
                         Ok(_) => println!("ok"),
                         Err(e) => eprintln!("{}", e),
                     }
                 },
                 AstKind::Create => {
-                    match table::Table::create_table(&stmt.create.unwrap()) {
-                        Ok(t) => {
+                    match tables.create_table(&stmt.create.unwrap()) {
+                        Ok(_) => {
                             println!("ok");
-                            table = t;
                         },
                         Err(e) => eprintln!("{}", e),
                     };
