@@ -28,9 +28,9 @@ pub enum AstKind {
 
 #[derive(Debug, PartialEq)]
 pub struct Statement {
-    pub select: Option<SelectStatement>,
-    pub create: Option<CreateTableStatement>,
-    pub insert: Option<InsertStatement>,
+    pub select: Option<SelectStatement>,      //
+    pub create: Option<CreateTableStatement>, // Golang no interface tekinano
+    pub insert: Option<InsertStatement>,      //
     pub kind: AstKind,
 }
 
@@ -66,7 +66,7 @@ impl Statement {
 #[derive(Debug, PartialEq)]
 pub struct SelectStatement {
     pub item: Vec<Expression>,
-    pub from: Expression,
+    pub from: Expression, // A String is better
 }
 
 impl SelectStatement {
@@ -77,7 +77,7 @@ impl SelectStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct InsertStatement {
-    pub table: token::Token,
+    pub table: token::Token, // A String is better
     pub values: Vec<Expression>,
 }
 
@@ -101,7 +101,7 @@ impl ColumnDefinition {
 
 #[derive(Debug, PartialEq)]
 pub struct CreateTableStatement {
-    pub name: token::Token,
+    pub name: token::Token, // A String is better
     pub cols: Vec<ColumnDefinition>,
 }
 

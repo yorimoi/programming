@@ -1,6 +1,6 @@
 use crate::ast::AstKind;
 use crate::parser;
-use crate::table;
+use crate::table::Tables;
 use crate::display;
 
 use std::net::{TcpListener, TcpStream, Shutdown};
@@ -8,20 +8,20 @@ use std::io::prelude::*;
 
 pub fn run() {
     let listener = TcpListener::bind("localhost:5432").unwrap();
-    let mut table: table::Table = Default::default();
+    let mut tables: Tables = Default::default();
 
     println!("Server listening on port 5432");
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream, &mut table);
+        handle_connection(stream, &mut tables);
     }
 
     drop(listener);
 }
 
-fn handle_connection(mut stream: TcpStream, table: &mut table::Table) {
+fn handle_connection(mut stream: TcpStream, tables: &mut Tables) {
     let mut data = [0; 256];
 
     while match stream.read(&mut data) {
@@ -45,7 +45,7 @@ fn handle_connection(mut stream: TcpStream, table: &mut table::Table) {
             for stmt in ast.statements {
                 match stmt.kind {
                     AstKind::Select => {
-                        match table.select(&stmt.select.unwrap()) {
+                        match tables.select(&stmt.select.unwrap()) {
                             Ok(virtual_table) => {
                                 ret += &display::html(&virtual_table);
                             },
@@ -53,16 +53,15 @@ fn handle_connection(mut stream: TcpStream, table: &mut table::Table) {
                         }
                     },
                     AstKind::Insert => {
-                        match table.insert(&stmt.insert.unwrap()) {
+                        match tables.insert(&stmt.insert.unwrap()) {
                             Ok(_) => ret += "ok<br />",
                             Err(e) => ret += &format!("{}", e),
                         }
                     },
                     AstKind::Create => {
-                        match table::Table::create_table(&stmt.create.unwrap()) {
-                            Ok(t) => {
+                        match tables.create_table(&stmt.create.unwrap()) {
+                            Ok(_) => {
                                 ret += "ok<br />";
-                                *table = t;
                             },
                             Err(e) => ret += &format!("{}", e),
                         };

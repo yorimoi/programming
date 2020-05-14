@@ -4,20 +4,12 @@ use crate::ast::*;
 use std::collections::HashMap;
 
 #[derive(Debug, Default)]
-pub struct Tables<'a> {
-    pub table: HashMap<String, &'a Table>,  // <table-name, &Table>
+pub struct Tables {
+    pub table: HashMap<String, Table>,  // <table-name, &Table>
 }
 
-#[derive(Debug, Default)]
-pub struct Table {
-    pub name:      String,
-    pub columns:   HashMap<String, TokenKind>,  // [INT|TEXT]
-    pub col_names: Vec<String>,
-    pub rows:      Vec<HashMap<String, TokenKind>>,
-}
-
-impl Table {
-    pub fn create_table(cts: &CreateTableStatement) -> Result<Self, String> {
+impl Tables {
+    pub fn create_table(&mut self, cts: &CreateTableStatement) -> Result<(), String> {
         let name = match pop_string(&cts.name.kind) {
             Ok(s) => s,
             Err(e) => return Err(e),
@@ -31,28 +23,55 @@ impl Table {
             columns.insert(name, cd.data_type.kind.clone());
         }
 
-        Ok(Self {
-            name,
-            columns,
-            col_names,
-            rows:       Vec::new(),
-        })
+        self.table.insert(name.to_string(),
+            Table {
+                name,
+                columns,
+                col_names,
+                rows: Vec::new(),
+            }
+        );
+
+        Ok(())
     }
 
     // Daibukitanai
     pub fn insert(&mut self, is: &InsertStatement) -> Result<(), String> {
         let mut column:  HashMap<String, TokenKind> = HashMap::new();
+        let table: &mut Table;
 
-        for (i, col) in self.col_names.iter().enumerate() {
+        match pop_string(&is.table.kind) {
+            Ok(name) => {
+                match self.table.get_mut(&name) {
+                    Some(t) => table = t,
+                    None => return Err("error: invalid table name".to_string()),
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        for (i, col) in table.col_names.iter().enumerate() {
             column.insert(col.to_string(), is.values[i].kind.clone());
         }
 
-        self.rows.push(column);
+        table.rows.push(column);
         Ok(())
     }
 
-    pub fn select(&self, ss: &SelectStatement) -> Result<Table, String> {
-        if pop_string(&ss.from.kind)? != self.name {
+    pub fn select(&mut self, ss: &SelectStatement) -> Result<Table, String> {
+        let table: &mut Table;
+
+        match pop_string(&ss.from.kind) {
+            Ok(name) => {
+                match self.table.get_mut(&name) {
+                    Some(t) => table = t,
+                    None => return Err("error: invalid table name".to_string()),
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        if pop_string(&ss.from.kind)? != table.name {
             return Err("error: invalid table name".to_string());
         }
 
@@ -63,10 +82,10 @@ impl Table {
         for item in &ss.item {
             let name = pop_string(&item.kind)?;
             col_names.push(name.to_string());
-            columns.insert(name.to_string(), self.columns.get(&name).unwrap().clone());
+            columns.insert(name.to_string(), table.columns.get(&name).unwrap().clone());
         }
 
-        for row in &self.rows {
+        for row in &table.rows {
             let mut hm = HashMap::new();
             for name in &col_names {
                 let kind = row.get(name).unwrap().clone();  // toriaezu era- syori nashi
@@ -82,6 +101,14 @@ impl Table {
             rows,
         })
     }
+}
+
+#[derive(Debug)]
+pub struct Table {
+    pub name:      String,
+    pub columns:   HashMap<String, TokenKind>,  // [INT|TEXT]
+    pub col_names: Vec<String>,
+    pub rows:      Vec<HashMap<String, TokenKind>>,
 }
 
 fn pop_string(tk: &TokenKind) -> Result<String, String> {
