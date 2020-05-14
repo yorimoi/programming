@@ -1,18 +1,24 @@
 extern crate prototype;
+extern crate clap;
 
-use std::env;
+use clap::{App, Arg};
+
 use prototype::repl;
 use prototype::server;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let app = App::new("prototype")
+        .arg(Arg::with_name("server")
+            .help("Start server")
+            .short("s")
+            .long("server")
+        );
 
-    if args.len() == 1 {
-        repl::run();
-    } else if args[1] == "server" {
+    let matches = app.get_matches();
+
+    if matches.is_present("server") {
         server::run();
     } else {
-        eprintln!("Invalid argument");
-        std::process::exit(1);
+        repl::run();
     }
 }
