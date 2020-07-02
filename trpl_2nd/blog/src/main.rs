@@ -10,6 +10,9 @@ fn main() {
     post.request_review();  // PendingReview
     assert_eq!("", post.content());
 
+    post.approve();  // PendingReview
+    assert_eq!("", post.content());
+
     post.approve();  // Published
     assert_eq!("I ate a salad for lunch today", post.content());
 
@@ -25,6 +28,7 @@ fn main() {
     post.request_review();  // PendingReview
     assert_eq!("", post.content());
 
+    post.approve();  // PendingReview
     post.approve();  // Published
     assert_eq!("I ate a salad for lunch today", post.content());
 }

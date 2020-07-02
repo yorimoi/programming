@@ -3,6 +3,7 @@
 pub struct Post {
     state: Option<Box<dyn State>>,
     content: String,
+    approvable: bool,
 }
 
 impl Post {
@@ -10,6 +11,7 @@ impl Post {
         Post {
             state: Some(Box::new(Draft {})),
             content: String::new(),
+            approvable: false,
         }
     }
 
@@ -28,12 +30,17 @@ impl Post {
     }
 
     pub fn approve(&mut self) {
-        if let Some(s) = self.state.take() {
-            self.state = Some(s.approve())
+        if self.approvable {
+            if let Some(s) = self.state.take() {
+                self.state = Some(s.approve())
+            }
+        } else {
+            self.approvable = true;
         }
     }
 
     pub fn reject(&mut self) {
+        self.approvable = false;
         if let Some(s) = self.state.take() {
             self.state = Some(s.reject())
         }
