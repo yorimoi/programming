@@ -1,5 +1,12 @@
 //! [オブジェクト指向デザインパターンを実装する](https://doc.rust-jp.rs/book/second-edition/ch17-03-oo-design-patterns.html)
 
+#[derive(PartialEq)]
+enum States {
+    Draft,
+    PendingReview,
+    Published,
+}
+
 pub struct Post {
     state: Option<Box<dyn State>>,
     content: String,
@@ -15,8 +22,13 @@ impl Post {
         }
     }
 
-    pub fn add_text(&mut self, text: &str) {
-        self.content.push_str(text);
+    pub fn add_text(&mut self, text: &str) -> Result<(), &str> {
+        if self.state() == &States::Draft {
+            self.content.push_str(text);
+            Ok(())
+        } else {
+            Err("can't add text to the post when it is in a state other than draft")
+        }
     }
 
     pub fn content(&self) -> &str {
@@ -45,15 +57,20 @@ impl Post {
             self.state = Some(s.reject())
         }
     }
+
+    fn state(&self) -> &'static States {
+        self.state.as_ref().unwrap().state()
+    }
 }
 
 trait State {
     fn request_review(self: Box<Self>) -> Box<dyn State>;
     fn approve(self: Box<Self>) -> Box<dyn State>;
-    fn content<'a>(&self, post: &'a Post) -> &'a str {
+    fn content<'a>(&self, _post: &'a Post) -> &'a str {
         ""
     }
     fn reject(self: Box<Self>) -> Box<dyn State>;
+    fn state(&self) -> &'static States;
 }
 
 struct Draft {}
@@ -70,6 +87,10 @@ impl State for Draft {
     fn reject(self: Box<Self>) -> Box<dyn State> {
         self
     }
+
+    fn state(&self) -> &'static States {
+        &States::Draft
+    }
 }
 
 struct PendingReview {}
@@ -85,6 +106,10 @@ impl State for PendingReview {
 
     fn reject(self: Box<Self>) -> Box<dyn State> {
         Box::new(Draft {})
+    }
+
+    fn state(&self) -> &'static States {
+        &States::PendingReview
     }
 }
 
@@ -105,6 +130,10 @@ impl State for Published {
 
     fn reject(self: Box<Self>) -> Box<dyn State> {
         Box::new(PendingReview {})
+    }
+
+    fn state(&self) -> &'static States {
+        &States::Published
     }
 }
 
