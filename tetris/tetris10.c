@@ -194,6 +194,9 @@ void gameloop(int field[H][W], Mino *mino) {
                 memcpy(mino->shape, tmp_s, sizeof(tmp_s));
                 draw(field, mino);
             }
+#ifdef _WIN32
+            Sleep(10);
+#endif
         }
     }
 }

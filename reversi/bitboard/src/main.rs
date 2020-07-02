@@ -16,6 +16,7 @@ struct Board {
     player_board: BitBoard,
     opponent_board: BitBoard,
     now_turn: Turn,
+    deck: Vec<BitBoard>,
 }
 
 impl Not for Turn {
@@ -35,12 +36,30 @@ impl Board {
             player_board:   0x0000_0008_1000_0000,
             opponent_board: 0x0000_0010_0800_0000,
             now_turn: Turn::Black,
+            deck: vec![ 1, 2, 3, 4, 5, 6, 7, 8,
+                        9,10,11,12,13,14,15,16,
+                       17,18,19,20,21,22,23,24,
+                       25,26,27,      30,31,32,
+                       33,34,35,      38,39,40,
+                       41,42,43,44,45,46,47,48,
+                       49,50,51,52,53,54,55,56,
+                       57,58,59,60,61,62,63,64],
         }
     }
 
     fn can_put(&self, put: BitBoard) -> bool {
         let legal_board = self.make_legal_board();
         (put & legal_board) == put
+    }
+
+    fn can_put_count(&self) -> usize {
+        let mut count = 0;
+        for i in self.deck.iter() {
+            if self.can_put(*i) {
+                count += 1;
+            }
+        }
+        count
     }
 
     fn make_legal_board(&self) -> BitBoard {
@@ -248,7 +267,6 @@ fn main() {
     loop {
         board.display();
         let put = board.get_random_coordinate();
-
         if board.can_put(put) {
             board.reverse(put);
             board.swap_board();
@@ -267,6 +285,20 @@ fn main() {
             board.print_result();
             break;
         }
+        //if board.can_put_count() > 0 {
+        //    let mut put = board.get_random_coordinate();
+        //    while !board.can_put(put) {
+        //        put = board.get_random_coordinate();
+        //    }
+        //    board.reverse(put);
+        //    board.swap_board();
+        //} else if board.is_pass() {
+        //    board.swap_board();
+        //} else {
+        //    board.display();
+        //    board.print_result();
+        //    break;
+        //}
 
         std::thread::sleep(std::time::Duration::from_millis(100));
     }

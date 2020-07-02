@@ -46,6 +46,32 @@ fn eval_normal(field: &mut [u32; 32]) {
     *field = buffer;
 }
 
+fn eval_bitboard(field: &mut [u32; 32]) {
+    let mut buffer: [u32; 32] = [0; 32];
+
+    for i in 1..=field.len()-2 {
+        for k in 0..field.len()/8 {
+            let mut s: [u32; 8] = [0; 8];
+            for j in 8*k+1..=8*k+8 {
+                if (31 <= j) {
+                    continue;
+                }
+                s[0] += (field[i-1]>>j+1)&1;
+                s[1] += (field[i-1]>>j  )&1;
+                s[2] += (field[i-1]>>j-1)&1;
+                s[3] += (field[i  ]>>j+1)&1;
+                s[4] += (field[i  ]>>j-1)&1;
+                s[5] += (field[i+1]>>j+1)&1;
+                s[6] += (field[i+1]>>j  )&1;
+                s[7] += (field[i+1]>>j-1)&1;
+                buffer[i] |= ((field[i]>>j)&1) & s[2] | s[3];
+            }
+        }
+    }
+
+    *field = buffer;
+}
+
 fn main() {
     println!("\x1b[2J");
     let mut field: [u32; 32] = [0; 32];  // 32x32 (30x30 sentinel)
@@ -67,7 +93,8 @@ fn main() {
     //loop {
     for _ in 0..1000 {
         display(&field);
-        eval_normal(&mut field);
+        //eval_normal(&mut field);
+        eval_bitboard(&mut field);
     }
 }
 

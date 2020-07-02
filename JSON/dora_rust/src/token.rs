@@ -52,7 +52,6 @@ pub const TRUE:  Type = "TRUE";
 pub const FALSE: Type = "FALSE";
 pub const NULL:  Type = "NULL";
 
-
 lazy_static! {
     static ref VALID_JSON_IDENTIFIERS: HashMap<&'static str, Type> = {
         let mut m = HashMap::new();

@@ -13,10 +13,13 @@ fn main() {
     let mut p = parser::Parser::new(l);
 
     let result = p.parse_program();
-    if let Err(e) = result {
-        eprintln!("{}", e);
-        std::process::exit(1);
-    }
+    let result = match result {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        },
+    };
 
     println!("{:?}", result);
 }
