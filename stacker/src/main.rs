@@ -18,6 +18,7 @@ struct Field {
     pub line_begin:   usize,
     pub line_end:     usize,
     pub dir:          Dir,
+    pub interval:     u64,
 }
 
 impl Field {
@@ -34,12 +35,14 @@ impl Field {
                               // ^ 1    ^ 8
             line_end:     8,
             dir:          Dir::Right,
+            interval:     100,
         }
     }
 }
 
 fn display(f: &Field) {
     println!("\x1b[H");
+    println!("\x1b[31m-{:-<width$}-\x1b[0m", "-", width = FIELD_WIDTH);
 
     for h in (f.current_line..FIELD_HEIGHT-1).rev() {
         print!("|");
@@ -54,7 +57,7 @@ fn display(f: &Field) {
     }
 
     for h in (1..f.current_line).rev() {
-        print!("|");
+        print!("|\x1b[34m");
         for w in 0..FIELD_WIDTH {
             if f.field[h] & (1 << w) != 0 {
                 print!("#");
@@ -62,7 +65,7 @@ fn display(f: &Field) {
                 print!(" ");
             }
         }
-        print!("|\n");
+        print!("\x1b[0m|\n");
     }
 
     println!("-{:-<width$}-", "-", width = FIELD_WIDTH);
@@ -76,7 +79,8 @@ fn gameloop() {
         loop {
             display(&field_clone.lock().unwrap());
 
-            thread::sleep(time::Duration::from_millis(100));
+            let interval = field_clone.lock().unwrap().interval;
+            thread::sleep(time::Duration::from_millis(interval));
 
             let mut field = field_clone.lock().unwrap();
             match field.dir {
@@ -118,6 +122,7 @@ fn gameloop() {
 
                         // Judge
                         if field.field[current_line] == 0 {
+                            // continue; // for debug
                             display(&field);
                             println!("     GAME OVER!!");
                             return;
@@ -129,6 +134,12 @@ fn gameloop() {
                         }
 
                         field.current_line += 1;
+
+                        field.interval = (field.interval as f64 * 0.9) as u64;
+
+                        if field.current_line % 3 == 0 {
+                            field.line_length -= 1;
+                        }
                     },
                     _ => (),  // do nothing
                 }
