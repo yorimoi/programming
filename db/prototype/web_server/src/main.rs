@@ -5,17 +5,18 @@ use std::fs::File;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let mut posts = String::new();
 
     println!("Server listening on port 7878");
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
+        handle_connection(stream, &mut posts);
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(mut stream: TcpStream, posts: &mut String) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
 
@@ -29,6 +30,8 @@ fn handle_connection(mut stream: TcpStream) {
         let request = String::from_utf8_lossy(&buffer[..]);
 
         let post = parse_request_line(&request);
+        posts.push_str(&post);
+        posts.push_str("<br />");
 
         // send to database
         let mut db_stream = TcpStream::connect("localhost:5432").unwrap();
@@ -58,8 +61,9 @@ r#"<!DOCTYPE html>
             <input type="text" name="sql" size="40">
             <input type="submit" value="send">
         </form>
+        {}
     </body>
-</html>"#, table);
+</html>"#, table, posts);
 
         let response = format!("{}{}", status_line, contents);
 

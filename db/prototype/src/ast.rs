@@ -26,9 +26,6 @@ pub enum AstKind {
     Insert,
 }
 
-pub trait Statement {
-}
-
 #[derive(Debug, PartialEq)]
 pub struct Statement {
     pub select: Option<SelectStatement>,      //
