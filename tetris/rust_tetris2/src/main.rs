@@ -3,11 +3,14 @@ use std::sync::{Arc, Mutex};
 
 use rand::seq::SliceRandom;
 use getch::Getch;
+use lazy_static::lazy_static;
 
 const FIELD_WIDTH:  usize = 10 + 2 + 2;  // field + wall + sentinel
 const FIELD_HEIGHT: usize = 20 + 1 + 2;  // field + wall + sentinel
 
 const MINO_TYPE_LENGTH: usize = 7;  // I O S Z J L T
+
+const FALL_INTERVAL_START: u64 = 500;
 
 /*   8421
  * 0 0000
@@ -26,6 +29,7 @@ static MINOS: [[i32; 2]; 7] = [
 enum MinoType {
     NONE = 0,
     WALL,
+    GHOST,
     I,
     O,
     S,
@@ -40,13 +44,14 @@ impl From<usize> for MinoType {
         match i {
             0 => MinoType::NONE,
             1 => MinoType::WALL,
-            2 => MinoType::I,
-            3 => MinoType::O,
-            4 => MinoType::S,
-            5 => MinoType::Z,
-            6 => MinoType::J,
-            7 => MinoType::L,
-            8 => MinoType::T,
+            2 => MinoType::GHOST,
+            3 => MinoType::I,
+            4 => MinoType::O,
+            5 => MinoType::S,
+            6 => MinoType::Z,
+            7 => MinoType::J,
+            8 => MinoType::L,
+            9 => MinoType::T,
             _ => unreachable!(),
         }
     }
@@ -63,6 +68,10 @@ struct Game {
     is_hold: bool,
     x: i32,
     y: i32,
+    score: usize,
+    total_line: usize,
+    level: usize,
+    fall_interval: u64,
 }
 
 impl Game {
@@ -78,6 +87,10 @@ impl Game {
             is_hold: false,
             x: 0,
             y: 0,
+            score: 0,
+            total_line: 0,
+            level: 1,
+            fall_interval: FALL_INTERVAL_START,
         };
 
         // Init mino stakcs
@@ -98,6 +111,24 @@ impl Game {
         game
     }
 
+    fn init(&mut self) {
+        let new_game = Game::new();
+        self.field            = new_game.field;
+        self.mino_stack_main  = new_game.mino_stack_main;
+        self.mino_stack_sub   = new_game.mino_stack_sub;
+        self.mino_stack_index = new_game.mino_stack_index;
+        self.shape            = new_game.shape;
+        self.mino_type        = new_game.mino_type;
+        self.hold             = new_game.hold;
+        self.is_hold          = new_game.is_hold;
+        self.x                = new_game.x;
+        self.y                = new_game.y;
+        self.score            = new_game.score;
+        self.total_line       = new_game.total_line;
+        println!("\x1b[2J\x1b[H");
+        usage();
+    }
+
     fn next_mino(&mut self) {
         if MINO_TYPE_LENGTH <= self.mino_stack_index {
             self.mino_stack_index = 0;
@@ -116,29 +147,62 @@ impl Game {
         self.is_hold = false;
     }
 
+    #[allow(clippy::needless_range_loop)]
     fn draw(&self) {
-        static COLORS: &[&str] = &[
-            "\x1b[48;2;000;000;000m  ",  // NONE
-            "\x1b[48;2;127;127;127m__",  // WALL
-            "\x1b[48;2;000;255;255m__",  // I
-            "\x1b[48;2;255;255;000m__",  // O
-            "\x1b[48;2;000;255;000m__",  // S
-            "\x1b[48;2;255;000;000m__",  // Z
-            "\x1b[48;2;000;000;255m__",  // J
-            "\x1b[48;2;255;127;000m__",  // L
-            "\x1b[48;2;127;000;255m__",  // T
-        ];
+        lazy_static! {
+            static ref COLORS: &'static [&'static str] = {
+                if cfg!(windows) {
+                    &[
+                        "\x1b[40m  ",  // NONE
+                        "\x1b[47m__",  // WALL
+                        "\x1b[40m[]",  // GHOST
+                        "\x1b[41m__",  // I
+                        "\x1b[42m__",  // O
+                        "\x1b[43m__",  // S
+                        "\x1b[44m__",  // Z
+                        "\x1b[45m__",  // J
+                        "\x1b[46m__",  // L
+                        "\x1b[47m__",  // T
+                    ]
+                } else {
+                    &[
+                        "\x1b[48;2;000;000;000m  ",  // NONE
+                        "\x1b[48;2;127;127;127m__",  // WALL
+                        "\x1b[48;2;000;000;000m[]",  // GHOST
+                        "\x1b[48;2;000;255;255m__",  // I
+                        "\x1b[48;2;255;255;000m__",  // O
+                        "\x1b[48;2;000;255;000m__",  // S
+                        "\x1b[48;2;255;000;000m__",  // Z
+                        "\x1b[48;2;000;000;255m__",  // J
+                        "\x1b[48;2;255;127;000m__",  // L
+                        "\x1b[48;2;127;000;255m__",  // T
+                    ]
+                }
+            };
+        }
         let mut field_buf = self.field;
         let mut output = String::new();
 
+        // Ghost
+        let ghost_y = {
+            let mut dy = 1;
+            while !self.is_collision(0, dy, &self.shape) {
+                dy += 1;
+            }
+            self.y + dy - 1
+        };
+
+        // Merge field, current shape and ghost
         for y in 0..4 {
             for x in 0..4 {
                 if self.shape[y] >> (3-x) & 1 == 1 {
-                    field_buf[y + self.y as usize][x + self.x as usize] = self.mino_type;
+                    field_buf[y + ghost_y as usize][x + self.x as usize] = MinoType::GHOST; // ghost
+                    field_buf[y + self.y  as usize][x + self.x as usize] = self.mino_type;  // entity
                 }
             }
         }
 
+        // Display main field
         output.push_str("\x1b[H\n\n\n");
         for line in field_buf.iter().take(FIELD_HEIGHT-1).skip(1) {
             output.push_str("\x1b[0m  ");
@@ -149,9 +213,21 @@ impl Game {
         }
         output.push_str("\x1b[0m");
 
+        // Display score
+        output.push_str(&format!("\x1b[2;{}HSCORE", FIELD_WIDTH * 2 + 10));
+        output.push_str(&format!("\x1b[3;{}H{:07}", FIELD_WIDTH * 2 + 10, self.score));
+
+        // Display total line
+        output.push_str(&format!("\x1b[5;{}HTOTAL", FIELD_WIDTH * 2 + 10));
+        output.push_str(&format!("\x1b[6;{}H{:07}", FIELD_WIDTH * 2 + 10, self.total_line));
+
+        // Display level
+        output.push_str(&format!("\x1b[8;{}HLEVEL", FIELD_WIDTH * 2 + 10));
+        output.push_str(&format!("\x1b[9;{}H{}",    FIELD_WIDTH * 2 + 10, self.level));
+
         // Display hold
+        output.push_str(&format!("\x1b[2;{}HHOLD", FIELD_WIDTH * 2));
         if let Some(hold) = self.hold {
-            output.push_str(&format!("\x1b[{};{}HHOLD", 1, FIELD_WIDTH * 2));
             let mino = MINOS[hold as usize - MinoType::I as usize];
             for y in 0..2 {
                 output.push_str(&format!("\x1b[{};{}H", 3 + y, FIELD_WIDTH * 2));
@@ -229,6 +305,8 @@ impl Game {
     }
 
     fn erase_line(&mut self) {
+        static SCORE_TABLE: &[usize] = &[ 0, 40, 100, 300, 1200 ];
+        let mut erase_line_count = 0;
         for y in 1..FIELD_HEIGHT-2 {
             let mut can_erase = true;
             for x in 2..=FIELD_WIDTH-3 {
@@ -238,17 +316,30 @@ impl Game {
                 }
             }
             if can_erase {
+                erase_line_count += 1;
                 for y2 in (1..y+1).rev() {
                     self.field[y2] = self.field[y2-1];
                 }
             }
         }
+        self.score += SCORE_TABLE[erase_line_count] * self.level;
+        self.total_line += erase_line_count;
+        self.level = self.total_line / 10 + 1;
+        self.fall_interval = {
+            let fi: i64 = FALL_INTERVAL_START as i64 - self.level as i64 * 10;
+            if fi <= 0 {
+                1 as u64
+            } else {
+                fi as u64
+            }
+        };
     }
 
     fn check_gameover(&self) {
         if self.is_collision(0, 0, &self.shape) {
             self.draw();
-            println!("\x1b[0m         GAME OVER\x1b[?25h");
+            println!("\x1b[{};{}H\x1b[0m G A M E O V E R ", FIELD_HEIGHT / 2, FIELD_WIDTH / 2);
+            println!("\x1b[{}H\x1b[?25h", FIELD_HEIGHT + 2);
             std::process::exit(0);
         }
     }
@@ -294,6 +385,7 @@ fn init_miso_stack(stack: &mut [MinoType; MINO_TYPE_LENGTH]) {
     *stack = new_stack;
 }
 
+#[allow(clippy::needless_range_loop)]
 fn gameloop(game: &mut Arc<Mutex<Game>>) {
     // Fall
     {
@@ -301,7 +393,8 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
         let _ = thread::spawn(move || {
             loop {
                 game.lock().unwrap().draw();
-                thread::sleep(time::Duration::from_millis(500));
+                let fall_interval = game.lock().unwrap().fall_interval;
+                thread::sleep(time::Duration::from_millis(fall_interval));
 
                 let mut game = game.lock().unwrap();
                 if !game.is_collision(0, 1, &game.shape) {
@@ -336,7 +429,7 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
                     game.x -= 1;
                 }
             }
-            // Down
+            // Soft drop
             Ok(b'j') => {
                 let mut game = game.lock().unwrap();
                 if !game.is_collision(0, 1, &game.shape) {
@@ -356,6 +449,10 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
                 while !game.is_collision(0, 1, &game.shape) {
                     game.y += 1;
                 }
+                game.fix2field();
+                game.erase_line();
+                game.next_mino();
+                game.check_gameover();
             }
             // Left rotation
             Ok(b'z') => {
@@ -387,15 +484,33 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
             Ok(b' ') => {
                 game.lock().unwrap().hold();
             }
+            // Reset
+            Ok(b'r') => {
+                game.lock().unwrap().init();
+            }
             _  => (),
         }
         game.lock().unwrap().draw();
     }
 }
 
+fn usage() {
+    println!("\x1b[{};{}HUSAGE",           FIELD_HEIGHT-8, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hh     Left",      FIELD_HEIGHT-6, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hj     Soft drop", FIELD_HEIGHT-5, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hk     Hard drop", FIELD_HEIGHT-4, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hl     Right",     FIELD_HEIGHT-3, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hspace Hold",      FIELD_HEIGHT-2, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hr     Reset",     FIELD_HEIGHT-1,   FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hq     Quit",      FIELD_HEIGHT,   FIELD_WIDTH * 2 + 10);
+}
+
 fn main() {
     // Clear screen, hide cursor
     println!("\x1b[2J\x1b[H\x1b[?25l");
+
+    // Display usage
+    usage();
 
     gameloop(&mut Arc::new(Mutex::new(Game::new())));
 
