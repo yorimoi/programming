@@ -6,7 +6,7 @@ use getch::Getch;
 use lazy_static::lazy_static;
 
 const FIELD_WIDTH:  usize = 10 + 2 + 2;  // field + wall + sentinel
-const FIELD_HEIGHT: usize = 20 + 1 + 2;  // field + wall + sentinel
+const FIELD_HEIGHT: usize = 20 + 1 + 4;  // field + wall + sentinel
 
 const MINO_TYPE_LENGTH: usize = 7;  // I O S Z J L T
 
@@ -101,17 +101,19 @@ impl Game {
 
         // Create wall
         for y in 0..FIELD_HEIGHT {
+            // Side
             game.field[y][1]             = MinoType::WALL;
             game.field[y][FIELD_WIDTH-2] = MinoType::WALL;
         }
         for x in 0..FIELD_WIDTH {
+            // Bottom
             game.field[FIELD_HEIGHT-2][x] = MinoType::WALL;
         }
 
         game
     }
 
-    fn init(&mut self) {
+    fn reset(&mut self) {
         let new_game = Game::new();
         self.field            = new_game.field;
         self.mino_stack_main  = new_game.mino_stack_main;
@@ -203,8 +205,15 @@ impl Game {
         }
 
         // Display main field
-        output.push_str("\x1b[H\n\n\n");
-        for line in field_buf.iter().take(FIELD_HEIGHT-1).skip(1) {
+        output.push_str("\x1b[H\n");
+        for line in field_buf.iter().take(3).skip(1) {
+            output.push_str("\x1b[0m    ");
+            for col in line.iter().take(FIELD_WIDTH-2).skip(2) {
+                output.push_str(COLORS[*col as usize]);
+            }
+            output.push('\n');
+        }
+        for line in field_buf.iter().take(FIELD_HEIGHT-1).skip(3) {
             output.push_str("\x1b[0m  ");
             for col in line.iter().take(FIELD_WIDTH-1).skip(1) {
                 output.push_str(COLORS[*col as usize]);
@@ -465,6 +474,21 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
                 }
                 if !game.is_collision(0, 0, &s) {
                     game.shape = s;
+                } else {
+                    // Super rotation
+                    if !game.is_collision(0, -1, &s) {
+                        game.shape = s;
+                        game.y -= 1;
+                    } else if !game.is_collision( 1, 0, &s) {
+                        game.shape = s;
+                        game.x += 1;
+                    } else if !game.is_collision( 0, 1, &s) {
+                        game.shape = s;
+                        game.y += 1;
+                    } else if !game.is_collision(-1, 0, &s) {
+                        game.shape = s;
+                        game.x -= 1;
+                    }
                 }
             }
             // Right rotation
@@ -478,6 +502,21 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
                 }
                 if !game.is_collision(0, 0, &s) {
                     game.shape = s;
+                } else {
+                    // Super rotation
+                    if !game.is_collision(0, -1, &s) {
+                        game.shape = s;
+                        game.y -= 1;
+                    } else if !game.is_collision( 1, 0, &s) {
+                        game.shape = s;
+                        game.x += 1;
+                    } else if !game.is_collision( 0, 1, &s) {
+                        game.shape = s;
+                        game.y += 1;
+                    } else if !game.is_collision(-1, 0, &s) {
+                        game.shape = s;
+                        game.x -= 1;
+                    }
                 }
             }
             // Hold
@@ -486,7 +525,7 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
             }
             // Reset
             Ok(b'r') => {
-                game.lock().unwrap().init();
+                game.lock().unwrap().reset();
             }
             _  => (),
         }
@@ -495,14 +534,14 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
 }
 
 fn usage() {
-    println!("\x1b[{};{}HUSAGE",           FIELD_HEIGHT-8, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hh     Left",      FIELD_HEIGHT-6, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hj     Soft drop", FIELD_HEIGHT-5, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hk     Hard drop", FIELD_HEIGHT-4, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hl     Right",     FIELD_HEIGHT-3, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hspace Hold",      FIELD_HEIGHT-2, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hr     Reset",     FIELD_HEIGHT-1,   FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hq     Quit",      FIELD_HEIGHT,   FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}HUSAGE",           FIELD_HEIGHT-9, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hh     Left",      FIELD_HEIGHT-7, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hj     Soft drop", FIELD_HEIGHT-6, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hk     Hard drop", FIELD_HEIGHT-5, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hl     Right",     FIELD_HEIGHT-4, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hspace Hold",      FIELD_HEIGHT-3, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hr     Reset",     FIELD_HEIGHT-2, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hq     Quit",      FIELD_HEIGHT-1, FIELD_WIDTH * 2 + 10);
 }
 
 fn main() {
