@@ -127,7 +127,7 @@ impl Game {
         self.y                = new_game.y;
         self.score            = new_game.score;
         self.total_line       = new_game.total_line;
-        println!("\x1b[2J\x1b[H");
+        println!("\x1b[2J\x1b[0m\x1b[H");
         usage();
     }
 
@@ -207,14 +207,14 @@ impl Game {
         // Display main field
         output.push_str("\x1b[H\n");
         for line in field_buf.iter().take(3).skip(1) {
-            output.push_str("\x1b[0m    ");
+            output.push_str("\x1b[0m\x1b[37m    ");
             for col in line.iter().take(FIELD_WIDTH-2).skip(2) {
                 output.push_str(COLORS[*col as usize]);
             }
             output.push('\n');
         }
         for line in field_buf.iter().take(FIELD_HEIGHT-1).skip(3) {
-            output.push_str("\x1b[0m  ");
+            output.push_str("\x1b[0m\x1b[37m  ");
             for col in line.iter().take(FIELD_WIDTH-1).skip(1) {
                 output.push_str(COLORS[*col as usize]);
             }
@@ -227,8 +227,8 @@ impl Game {
         output.push_str(&format!("\x1b[3;{}H{:07}", FIELD_WIDTH * 2 + 10, self.score));
 
         // Display total line
-        output.push_str(&format!("\x1b[5;{}HTOTAL", FIELD_WIDTH * 2 + 10));
-        output.push_str(&format!("\x1b[6;{}H{:07}", FIELD_WIDTH * 2 + 10, self.total_line));
+        output.push_str(&format!("\x1b[5;{}HTOTAL LINES", FIELD_WIDTH * 2 + 10));
+        output.push_str(&format!("\x1b[6;{}H{:07}",       FIELD_WIDTH * 2 + 10, self.total_line));
 
         // Display level
         output.push_str(&format!("\x1b[8;{}HLEVEL", FIELD_WIDTH * 2 + 10));
@@ -242,7 +242,7 @@ impl Game {
                 output.push_str(&format!("\x1b[{};{}H", 3 + y, FIELD_WIDTH * 2));
                 for x in (0..4).rev() {
                     if mino[y] >> x & 1 == 1 {
-                        output.push_str(&format!("{}\x1b[0m", COLORS[hold as usize]));
+                        output.push_str(&format!("{}\x1b[0m\x1b[37m", COLORS[hold as usize]));
                     } else {
                         output.push_str("  ");
                     }
@@ -251,7 +251,7 @@ impl Game {
         }
 
         // Display nexts
-        output.push_str(&format!("\x1b[{};{}HNEXT", 6, FIELD_WIDTH * 2));
+        output.push_str(&format!("\x1b[0m\x1b[{};{}HNEXT", 6, FIELD_WIDTH * 2));
         let mut next_mino_count = 0;
         for i in self.mino_stack_index..MINO_TYPE_LENGTH {
             let mino = MINOS[self.mino_stack_main[i] as usize - MinoType::I as usize];
@@ -259,7 +259,7 @@ impl Game {
                 output.push_str(&format!("\x1b[{};{}H", 8 + y + next_mino_count * 3, FIELD_WIDTH * 2));
                 for x in (0..4).rev() {
                     if mino[y] >> x & 1 == 1 {
-                        output.push_str(&format!("{}\x1b[0m", COLORS[self.mino_stack_main[i] as usize]));
+                        output.push_str(&format!("{}\x1b[0m\x1b[37m", COLORS[self.mino_stack_main[i] as usize]));
                     } else {
                         output.push_str("  ");
                     }
@@ -273,7 +273,7 @@ impl Game {
                 output.push_str(&format!("\x1b[{};{}H", 8 + y + next_mino_count * 3, FIELD_WIDTH * 2));
                 for x in (0..4).rev() {
                     if mino[y] >> x & 1 == 1 {
-                        output.push_str(&format!("{}\x1b[0m", COLORS[self.mino_stack_sub[i] as usize]));
+                        output.push_str(&format!("{}\x1b[0m\x1b[37m", COLORS[self.mino_stack_sub[i] as usize]));
                     } else {
                         output.push_str("  ");
                     }
@@ -371,6 +371,22 @@ impl Game {
         }
         self.is_hold = true;
     }
+
+    fn super_rotation(&mut self, new_shape: &[i32; 4]) {
+        if !self.is_collision(0, -1, new_shape) {
+            self.shape = *new_shape;
+            self.y -= 1;
+        } else if !self.is_collision( 1, 0, new_shape) {
+            self.shape = *new_shape;
+            self.x += 1;
+        } else if !self.is_collision( 0, 1, new_shape) {
+            self.shape = *new_shape;
+            self.y += 1;
+        } else if !self.is_collision(-1, 0, new_shape) {
+            self.shape = *new_shape;
+            self.x -= 1;
+        }
+    }
 }
 
 fn set_mino_shape(shape: &mut [i32; 4], mino_type: MinoType) {
@@ -466,57 +482,33 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
             // Left rotation
             Ok(b'z') => {
                 let mut game = game.lock().unwrap();
-                let mut s: [i32; 4] = [0; 4];
+                let mut new_shape: [i32; 4] = [0; 4];
                 for y in 0..4 {
                     for x in 0..4 {
-                        s[x] |= (game.shape[4-1-y]>>x & 1) << y;
+                        new_shape[x] |= (game.shape[4-1-y]>>x & 1) << y;
                     }
                 }
-                if !game.is_collision(0, 0, &s) {
-                    game.shape = s;
+                if !game.is_collision(0, 0, &new_shape) {
+                    game.shape = new_shape;
                 } else {
                     // Super rotation
-                    if !game.is_collision(0, -1, &s) {
-                        game.shape = s;
-                        game.y -= 1;
-                    } else if !game.is_collision( 1, 0, &s) {
-                        game.shape = s;
-                        game.x += 1;
-                    } else if !game.is_collision( 0, 1, &s) {
-                        game.shape = s;
-                        game.y += 1;
-                    } else if !game.is_collision(-1, 0, &s) {
-                        game.shape = s;
-                        game.x -= 1;
-                    }
+                    game.super_rotation(&new_shape);
                 }
             }
             // Right rotation
             Ok(b'x') => {
                 let mut game = game.lock().unwrap();
-                let mut s: [i32; 4] = [0; 4];
+                let mut new_shape: [i32; 4] = [0; 4];
                 for y in 0..4 {
                     for x in 0..4 {
-                        s[4-1-x] |= (game.shape[y]>>x & 1) << y;
+                        new_shape[4-1-x] |= (game.shape[y]>>x & 1) << y;
                     }
                 }
-                if !game.is_collision(0, 0, &s) {
-                    game.shape = s;
+                if !game.is_collision(0, 0, &new_shape) {
+                    game.shape = new_shape;
                 } else {
                     // Super rotation
-                    if !game.is_collision(0, -1, &s) {
-                        game.shape = s;
-                        game.y -= 1;
-                    } else if !game.is_collision( 1, 0, &s) {
-                        game.shape = s;
-                        game.x += 1;
-                    } else if !game.is_collision( 0, 1, &s) {
-                        game.shape = s;
-                        game.y += 1;
-                    } else if !game.is_collision(-1, 0, &s) {
-                        game.shape = s;
-                        game.x -= 1;
-                    }
+                    game.super_rotation(&new_shape);
                 }
             }
             // Hold
@@ -534,14 +526,16 @@ fn gameloop(game: &mut Arc<Mutex<Game>>) {
 }
 
 fn usage() {
-    println!("\x1b[{};{}HUSAGE",           FIELD_HEIGHT-9, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hh     Left",      FIELD_HEIGHT-7, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hj     Soft drop", FIELD_HEIGHT-6, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hk     Hard drop", FIELD_HEIGHT-5, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hl     Right",     FIELD_HEIGHT-4, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hspace Hold",      FIELD_HEIGHT-3, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hr     Reset",     FIELD_HEIGHT-2, FIELD_WIDTH * 2 + 10);
-    println!("\x1b[{};{}Hq     Quit",      FIELD_HEIGHT-1, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}HUSAGE",              FIELD_HEIGHT-11, FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hh     Left",         FIELD_HEIGHT-9,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hj     Soft drop",    FIELD_HEIGHT-8,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hk     Hard drop",    FIELD_HEIGHT-7,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hl     Right",        FIELD_HEIGHT-6,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hz     Left  rotate", FIELD_HEIGHT-5,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hx     Right rotate", FIELD_HEIGHT-4,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hspace Hold",         FIELD_HEIGHT-3,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hr     Reset",        FIELD_HEIGHT-2,  FIELD_WIDTH * 2 + 10);
+    println!("\x1b[{};{}Hq     Quit",         FIELD_HEIGHT-1,  FIELD_WIDTH * 2 + 10);
 }
 
 fn main() {
