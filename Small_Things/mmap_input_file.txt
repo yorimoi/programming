@@ -1,0 +1,2 @@
+This is test file for using mmap.
+mmap is useful for read/write file.
