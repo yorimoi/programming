@@ -40,6 +40,3 @@ struct Ast {
     int     val;
 };
 
-Token *TOKEN;
-extern Token *TOKEN;
-

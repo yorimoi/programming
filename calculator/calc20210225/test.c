@@ -1,5 +1,7 @@
 #include "main.h"
 
+extern Token *TOKEN;
+
 Token* tokenize(const char * input);
 Ast *gen_ast();
 void expr(Ast *node);

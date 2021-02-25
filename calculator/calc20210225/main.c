@@ -3,6 +3,8 @@
 
 #include "main.h"
 
+Token *TOKEN;
+
 #define MAX_STACK_SIZE 100
 static struct {
     int array[MAX_STACK_SIZE];
