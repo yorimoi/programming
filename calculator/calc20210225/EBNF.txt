@@ -1,0 +1,6 @@
+program = expr*
+expr = add+
+add = mul ('+' mul | '-' mul)?
+mul = unary ('*' unary | '/' unary | '%' unary)?
+unary = '-'? term
+term = '(' expr ')' | [0-9][0-9]*

@@ -6,7 +6,7 @@ run: main.h main.c
 	@./a.out
 
 test: main.h main.c test.c
-	@$(CC) test.c main.c -e test
+	@$(CC) test.c main.c -Wl,--entry=test
 	@./a.out
 
 clean:

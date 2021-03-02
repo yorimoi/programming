@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void push(int val);
-int pop();
-
 typedef enum {
     TK_Plus,   // '+'
     TK_Minus,  // '-'
@@ -39,7 +36,4 @@ struct Ast {
     AstKind kind;
     int     val;
 };
-
-Token *TOKEN;
-extern Token *TOKEN;
 

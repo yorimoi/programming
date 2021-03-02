@@ -1,5 +1,6 @@
-#include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "main.h"
 
@@ -20,19 +21,19 @@ int pop() {
         //printf("[>%d]\n", STACK.array[STACK.cur - 1]);
         return STACK.array[--STACK.cur];
     } else {
-        //printf("[.]\n");
-        return 0;
+        fprintf(stderr, "null stack");
+        exit(1);
     }
 }
 
 Token* new_token(TokenKind kind) {
-    Token *t = (Token *) malloc(sizeof(Token *));
+    Token *t = (Token *) malloc(sizeof(Token));
     t->kind = kind;
     return t;
 }
 
 Ast *new_node(AstKind kind, Ast *rhs, Ast *lhs) {
-    Ast *node = (Ast *) malloc(sizeof(Ast *));
+    Ast *node = (Ast *) malloc(sizeof(Ast));
     node->kind = kind;
     node->rhs = rhs;
     node->lhs = lhs;
@@ -40,14 +41,13 @@ Ast *new_node(AstKind kind, Ast *rhs, Ast *lhs) {
 }
 
 Ast *new_node_num(int val) {
-    Ast *node = (Ast *) malloc(sizeof(Ast *));
-    node->kind = AK_Num;
+    Ast *node = new_node(AK_Num, NULL, NULL);
     node->val = val;
     return node;
 }
 
 Token* tokenize(const char * input) {
-    Token *head= (Token *) malloc(sizeof(Token *));
+    Token *head= (Token *) malloc(sizeof(Token));
     Token *cur = head;
     const char *p = input;
 
@@ -93,125 +93,120 @@ Token* tokenize(const char * input) {
     return head->next;
 }
 
-Ast *add();
-Ast *mul();
-Ast *num();
+Ast *expr(Token*);
+Ast *add(Token*);
+Ast *mul(Token*);
+Ast *unary(Token*);
+Ast *term(Token*);
 
-void consume() {
-    TOKEN = TOKEN->next;
+_Bool consume(const TokenKind expect, Token *token) {
+    if (token->kind == expect) {
+        *token = *token->next;
+        return true;
+    }
+    return false;
 }
 
-// expr = add
-Ast *gen_ast() {
-    return add();
+Ast *gen_ast(Token *token) {
+    return expr(token);
+}
+
+// expr = add+
+Ast *expr(Token *token) {
+    return add(token);
 }
 
 // add = mul ('+' mul | '-' mul)?
-Ast *add() {
-    Ast *node = mul();
+Ast *add(Token *token) {
+    Ast *node = mul(token);
 
     while (1) {
-        if (TOKEN->kind == TK_Plus) {
-            consume();
-            node = new_node(AK_Add, node, mul());
-        } else if (TOKEN->kind == TK_Minus) {
-            consume();
-            node = new_node(AK_Sub, node, mul());
+        if (consume(TK_Plus, token)) {
+            node = new_node(AK_Add, node, mul(token));
+        } else if (consume(TK_Minus, token)) {
+            node = new_node(AK_Sub, node, mul(token));
         } else {
             return node;
         }
     }
 }
 
-// mul = num ('*' num | '/' num | '%' num)?
-Ast *mul() {
-    Ast *node = num();
+// mul = unary ('*' unary | '/' unary | '%' unary)?
+Ast *mul(Token *token) {
+    Ast *node = unary(token);
 
     while (1) {
-        if (TOKEN->kind == TK_Asta) {
-            consume();
-            node = new_node(AK_Mul, node, num());
-        } else if (TOKEN->kind == TK_Slash) {
-            consume();
-            node = new_node(AK_Div, node, num());
-        } else if (TOKEN->kind == TK_Parce) {
-            consume();
-            node = new_node(AK_Mod, node, num());
+        if (consume(TK_Asta, token)) {
+            node = new_node(AK_Mul, node, unary(token));
+        } else if (consume(TK_Slash, token)) {
+            node = new_node(AK_Div, node, unary(token));
+        } else if (consume(TK_Parce, token)) {
+            node = new_node(AK_Mod, node, unary(token));
         } else {
             return node;
         }
     }
 }
 
-// num = '(' expr ')' | ('1'..'9')('0'..'9')*
-Ast *num() {
-    if (TOKEN->kind == TK_LParen) {
-        consume();
-        Ast *node = add();
-        if (TOKEN->kind != TK_RParen) {
+// unary = '-'? term
+Ast *unary(Token *token) {
+    if (consume(TK_Minus, token)) {
+        return new_node(AK_Sub, new_node_num(0), unary(token));
+    } else {
+        return term(token);
+    }
+}
+
+// term = '(' expr ')' | [0-9][0-9]*
+Ast *term(Token *token) {
+    if (consume(TK_LParen, token)) {
+        Ast *node = add(token);
+        if (!consume(TK_RParen, token)) {
             fprintf(stderr, "Open parenthesis has no corresponding closing parenthesis\n");
             exit(1);
         }
-        consume();
         return node;
     }
-    int val = TOKEN->val;
-    consume();
-    return new_node_num(val);
+
+    int val = token->val;
+    if (consume(TK_Num, token)) {
+        return new_node_num(val);
+    }
+
+    fprintf(stderr, "%d: unreachable", __LINE__);
+    exit(1);
 }
 
-void expr(Ast *node) {
+void calculate(Ast *node) {
     if (node->kind == AK_Num) {
         push(node->val);
         return;
     }
 
-    expr(node->rhs);
-    expr(node->lhs);
+    calculate(node->rhs);
+    calculate(node->lhs);
+
+    int l = pop();
+    int r = pop();
 
     switch (node->kind) {
-        case AK_Add: {
-            int l = pop();
-            int r = pop();
-            push(r + l);
-            break;
-        }
-        case AK_Sub: {
-            int l = pop();
-            int r = pop();
-            push(r - l);
-            break;
-        }
-        case AK_Mul: {
-            int l = pop();
-            int r = pop();
-            push(r * l);
-            break;
-        }
-        case AK_Div: {
-            int l = pop();
-            int r = pop();
-            push(r / l);
-            break;
-        }
-        case AK_Mod: {
-            int l = pop();
-            int r = pop();
-            push(r % l);
-            break;
-        }
-        default: printf("unreachable"); break;
+        case AK_Add: push(r + l); break;
+        case AK_Sub: push(r - l); break;
+        case AK_Mul: push(r * l); break;
+        case AK_Div: push(r / l); break;
+        case AK_Mod: push(r % l); break;
+        default: fprintf(stderr, "%d: unreachable", __LINE__); break;
     }
 }
 
 int main(void) {
-    const char *input = "1+42/2-23*4+70+8%6";
+    const char *input = "1+42/2-23*4+70+8%6*-3";
 
-    TOKEN = tokenize(input);
+    Token *token = tokenize(input);
 
-    Ast *node = gen_ast();
+    Ast *node = gen_ast(token);
 
-    expr(node);
+    calculate(node);
 
     printf("%s = %d\n", input, pop());
 
