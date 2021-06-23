@@ -1,4 +1,6 @@
-﻿Public Class MainForm
+﻿Imports System.Reflection.Emit
+
+Public Class MainForm
 
     ''' <summary>
     ''' MainForm上のキーダウンイベントを受け取る
@@ -86,39 +88,41 @@
     ''' <returns>計算結果</returns>
     Private Shared Function Evaluate(node As Ast) As Integer
         Dim stack As New Stack(Of Integer)
+        Dim dm As New DynamicMethod("exec", GetType(Integer), Nothing)
+        Dim il As ILGenerator = dm.GetILGenerator()
         Try
-            Express(stack, node)
-            Return stack.Pop()
+            Express(il, node)
+            il.Emit(OpCodes.Ret)
+            Return dm.Invoke(il, Nothing)
         Catch ex As DivideByZeroException
             MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error)
+        Catch ex As Exception
+            MessageBox.Show("エラーが発生しました", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
         Return 0
     End Function
 
-    Private Shared Sub Express(ByRef stack As Stack(Of Integer), ByRef node As Ast)
+    Private Shared Sub Express(ByRef il As ILGenerator, ByRef node As Ast)
         If node.Type = NodeType.Num Then
-            stack.Push(node.Num)
+            il.Emit(OpCodes.Ldc_I4, node.Num)
             Return
         End If
 
-        Express(stack, node.LNode)
-        Express(stack, node.RNode)
-
-        Dim r = stack.Pop()
-        Dim l = stack.Pop()
+        Express(il, node.LNode)
+        Express(il, node.RNode)
 
         Select case node.Type
             Case NodeType.Add:
-                stack.Push(l + r)
+                il.Emit(OpCodes.Add)
             Case NodeType.Subt:
-                stack.Push(l - r)
+                il.Emit(OpCodes.Sub)
             Case NodeType.Mul:
-                stack.Push(l * r)
+                il.Emit(OpCodes.Mul)
             Case NodeType.Div:
-                If r = 0 Then
+                If node.RNode.Num = 0 Then
                     Throw New DivideByZeroException()
                 End If
-                stack.Push(l / r)
+                il.Emit(OpCodes.Div)
         End Select
     End Sub
 End Class
